@@ -3,7 +3,7 @@ import torch.nn as nn
 class Identity(nn.Identity):
     """
     nn.Identity but ignores all passed arguments
-    useful for replacing activations/normalization layers with identity without worrying about the arguments
+    useful for replacing normalization layers with identity without worrying about the passed arguments
     Examples:
         >>> if norm_mode == "batchnorm":
         >>>   norm_ctor = nn.BatchNorm1d
