@@ -39,22 +39,24 @@ class DropPath(nn.Sequential):
         else:
             keep_count = max(int(bs * self.keep_prob), 1)
             scale = bs / keep_count
-            perm = torch.randperm(bs, device=x.device)[:keep_count].sort().values
+            perm = torch.randperm(bs, device=x.device)[:keep_count]
 
         # propagate
-        if residual_path is None:
-            y = super().forward(x[perm])
-        else:
-            y = residual_path(x[perm])
         if self.scale_by_keep:
-            y = y * scale
-
-        # merge drop (residual path) and keep (transform path)
-        x2 = x[perm] + y
-        mask = torch.zeros(len(x), *[1] * (x.ndim - 1), device=x.device, dtype=torch.bool)
-        mask[perm] = True
-        x = x.masked_scatter(mask, x2)
-        return x
+            alpha = scale
+        else:
+            alpha = 1.
+        if residual_path is None:
+            residual = super().forward(x[perm])
+        else:
+            residual = residual_path(x[perm])
+        return torch.index_add(
+            x.flatten(start_dim=1),
+            dim=0,
+            index=perm,
+            source=residual.to(x.dtype).flatten(start_dim=1),
+            alpha=alpha,
+        ).view_as(x)
 
     def extra_repr(self):
         return f'drop_prob={round(self.drop_prob,3):0.3f}'
