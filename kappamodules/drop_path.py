@@ -16,13 +16,13 @@ class DropPath(nn.Sequential):
         >>> y = standalone_droppath(torch.randn(10, 4), standalone_layer)
     """
 
-    def __init__(self, *args, drop_prob: float = 0., scale_by_keep: bool = True, stochastic_size: bool = False):
+    def __init__(self, *args, drop_prob: float = 0., scale_by_keep: bool = True, stochastic_drop_prob: bool = False):
         super().__init__(*args)
         assert 0. <= drop_prob < 1.
         self.drop_prob = drop_prob
         self.keep_prob = 1. - drop_prob
         self.scale_by_keep = scale_by_keep
-        self.stochastic_size = stochastic_size
+        self.stochastic_drop_prob = stochastic_drop_prob
 
     def forward(self, x, residual_path=None):
         assert (len(self) == 0) ^ (residual_path is None)
@@ -33,7 +33,7 @@ class DropPath(nn.Sequential):
                 return x + residual_path(x)
         # generate indices to keep (propagated through transform path)
         bs = len(x)
-        if self.stochastic_size:
+        if self.stochastic_drop_prob:
             perm = torch.empty(bs, device=x.device).bernoulli_(self.keep_prob).nonzero().squeeze(1)
             scale = 1 / self.keep_prob
         else:

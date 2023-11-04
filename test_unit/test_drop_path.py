@@ -8,7 +8,7 @@ from kappamodules.drop_path import DropPath
 from original_modules.original_drop_path import OriginalDropPath
 
 class TestEfficientDropPath(unittest.TestCase):
-    def is_equal_to_original(self, dim, drop_prob, stochastic_size, scale_by_keep, training, seed):
+    def is_equal_to_original(self, dim, drop_prob, stochastic_drop_prob, scale_by_keep, training, seed):
         # create layers
         torch.manual_seed(seed)
         custom_sequential_layer = nn.Linear(dim, dim)
@@ -17,7 +17,7 @@ class TestEfficientDropPath(unittest.TestCase):
         torch.manual_seed(seed)
         original_layer = nn.Linear(dim, dim)
         # create DropPath modules
-        kwargs = dict(drop_prob=drop_prob, stochastic_size=stochastic_size, scale_by_keep=scale_by_keep)
+        kwargs = dict(drop_prob=drop_prob, stochastic_drop_prob=stochastic_drop_prob, scale_by_keep=scale_by_keep)
         custom_sequential = DropPath(custom_sequential_layer, **kwargs)
         custom_standalone = DropPath(**kwargs)
         original = OriginalDropPath(**kwargs)
@@ -63,7 +63,7 @@ class TestEfficientDropPath(unittest.TestCase):
         self.is_equal_to_original(
             dim=4,
             drop_prob=0.3,
-            stochastic_size=True,
+            stochastic_drop_prob=True,
             scale_by_keep=True,
             training=True,
             seed=4389,
@@ -73,7 +73,7 @@ class TestEfficientDropPath(unittest.TestCase):
         self.is_equal_to_original(
             dim=4,
             drop_prob=0.3,
-            stochastic_size=False,
+            stochastic_drop_prob=False,
             scale_by_keep=True,
             training=True,
             seed=4389,
@@ -83,7 +83,7 @@ class TestEfficientDropPath(unittest.TestCase):
         self.is_equal_to_original(
             dim=4,
             drop_prob=0.3,
-            stochastic_size=True,
+            stochastic_drop_prob=True,
             scale_by_keep=False,
             training=True,
             seed=4389,
@@ -93,7 +93,7 @@ class TestEfficientDropPath(unittest.TestCase):
         self.is_equal_to_original(
             dim=4,
             drop_prob=0.3,
-            stochastic_size=True,
+            stochastic_drop_prob=True,
             scale_by_keep=True,
             training=False,
             seed=4389,
@@ -103,7 +103,7 @@ class TestEfficientDropPath(unittest.TestCase):
         self.is_equal_to_original(
             dim=4,
             drop_prob=0.3,
-            stochastic_size=False,
+            stochastic_drop_prob=False,
             scale_by_keep=False,
             training=True,
             seed=4389,
@@ -113,7 +113,7 @@ class TestEfficientDropPath(unittest.TestCase):
         self.is_equal_to_original(
             dim=4,
             drop_prob=0.3,
-            stochastic_size=False,
+            stochastic_drop_prob=False,
             scale_by_keep=True,
             training=False,
             seed=4389,
@@ -123,7 +123,7 @@ class TestEfficientDropPath(unittest.TestCase):
         self.is_equal_to_original(
             dim=4,
             drop_prob=0.3,
-            stochastic_size=False,
+            stochastic_drop_prob=False,
             scale_by_keep=False,
             training=False,
             seed=4389,
