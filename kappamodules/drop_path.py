@@ -2,7 +2,19 @@ import torch
 import torch.nn as nn
 
 class DropPath(nn.Sequential):
-    """ Efficiently drop paths (Stochastic Depth) per sample """
+    """
+    Efficiently drop paths (Stochastic Depth) per sample such that dropped samples are not processed.
+    This is a subclass of nn.Sequential and can be used either as standalone Module or like nn.Sequential.
+    Examples::
+        >>> # use as nn.Sequential module
+        >>> sequential_droppath = DropPath(nn.Linear(4, 4), drop_prob=0.2)
+        >>> y = sequential_droppath(torch.randn(10, 4))
+
+        >>> # use as standalone module
+        >>> standalone_layer = nn.Linear(4, 4)
+        >>> standalone_droppath = DropPath(drop_prob=0.2)
+        >>> y = standalone_droppath(torch.randn(10, 4), standalone_layer)
+    """
 
     def __init__(self, *args, drop_prob: float = 0., scale_by_keep: bool = True, stochastic_size: bool = False):
         super().__init__(*args)
@@ -12,9 +24,13 @@ class DropPath(nn.Sequential):
         self.scale_by_keep = scale_by_keep
         self.stochastic_size = stochastic_size
 
-    def forward(self, x):
+    def forward(self, x, residual_path=None):
+        assert (len(self) == 0) ^ (residual_path is None)
         if self.drop_prob == 0. or not self.training:
-            return x + super().forward(x)
+            if residual_path is None:
+                return x + super().forward(x)
+            else:
+                return x + residual_path(x)
         # generate indices to keep (propagated through transform path)
         bs = len(x)
         if self.stochastic_size:
@@ -26,7 +42,10 @@ class DropPath(nn.Sequential):
             perm = torch.randperm(bs, device=x.device)[:keep_count].sort().values
 
         # propagate
-        y = super().forward(x[perm])
+        if residual_path is None:
+            y = super().forward(x[perm])
+        else:
+            y = residual_path(x[perm])
         if self.scale_by_keep:
             y = y * scale
 
