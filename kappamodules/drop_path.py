@@ -23,7 +23,7 @@ class DropPath(nn.Sequential):
         else:
             keep_count = max(int(bs * self.keep_prob), 1)
             scale = bs / keep_count
-            perm = torch.randperm(bs, device=x.device)[:keep_count]
+            perm = torch.randperm(bs, device=x.device)[:keep_count].sort().values
 
         # propagate
         y = super().forward(x[perm])
