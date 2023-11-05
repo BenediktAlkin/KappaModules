@@ -3,7 +3,7 @@ import torch.nn as nn
 
 
 class LinearAttention(nn.Module):
-    def __init__(self, dim, num_heads=8, qkv_bias=False):
+    def __init__(self, dim, num_heads=8, qkv_bias=True):
         super().__init__()
         assert dim % num_heads == 0, "dim should be divisible by num_heads"
         self.num_heads = num_heads

@@ -6,7 +6,7 @@ class DotProductAttentionSlow(nn.Module):
             self,
             dim,
             num_heads=8,
-            qkv_bias=False,
+            qkv_bias=True,
             qk_norm=False,
             attn_drop=0.,
             proj_drop=0.,
