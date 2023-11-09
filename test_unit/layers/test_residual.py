@@ -3,7 +3,7 @@ import unittest
 import torch
 from torch import nn
 
-from kappamodules import Residual
+from kappamodules.layers import Residual
 
 
 class TestResidual(unittest.TestCase):

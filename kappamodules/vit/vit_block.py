@@ -2,8 +2,8 @@ from torch import nn
 
 from kappamodules.attention.dot_product_attention import DotProductAttention
 from kappamodules.attention.dot_product_attention_slow import DotProductAttentionSlow
-from kappamodules.drop_path import DropPath
-from kappamodules.vit.vit_mlp import VitMlp
+from kappamodules.layers import DropPath
+from .vit_mlp import VitMlp
 
 
 class VitBlock(nn.Module):

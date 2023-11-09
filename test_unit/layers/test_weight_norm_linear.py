@@ -3,7 +3,7 @@ import unittest
 import torch
 from torch import nn
 
-from kappamodules.weight_norm_linear import WeightNormLinear
+from kappamodules.layers import WeightNormLinear
 
 
 class TestWeightNormLinear(unittest.TestCase):

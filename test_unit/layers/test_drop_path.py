@@ -3,7 +3,7 @@ import unittest
 import torch
 from torch import nn
 
-from kappamodules.drop_path import DropPath
+from kappamodules.layers import DropPath
 from original_modules.original_drop_path import OriginalDropPath
 
 
