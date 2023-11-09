@@ -1,5 +1,6 @@
 import torch
-import torch.nn as nn
+from torch import nn
+
 
 class DropPath(nn.Sequential):
     """
@@ -59,4 +60,4 @@ class DropPath(nn.Sequential):
         ).view_as(x)
 
     def extra_repr(self):
-        return f'drop_prob={round(self.drop_prob,3):0.3f}'
+        return f'drop_prob={round(self.drop_prob, 3):0.3f}'

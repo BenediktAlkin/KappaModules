@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import patch
 
 import torch
-import torch.nn as nn
+from torch import nn
 
 from kappamodules.drop_path import DropPath
 from original_modules.original_drop_path import OriginalDropPath

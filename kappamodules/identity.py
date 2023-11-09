@@ -1,4 +1,5 @@
-import torch.nn as nn
+from torch import nn
+
 
 class Identity(nn.Identity):
     """

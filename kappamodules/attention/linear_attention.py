@@ -1,5 +1,5 @@
 import einops
-import torch.nn as nn
+from torch import nn
 
 
 class LinearAttention(nn.Module):
