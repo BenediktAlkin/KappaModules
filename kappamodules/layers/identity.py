@@ -18,3 +18,6 @@ class Identity(nn.Identity):
 
     def __init__(self, *_, **__):
         super().__init__()
+
+    def forward(self, x, *_, **__):
+        return x
