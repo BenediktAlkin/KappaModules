@@ -32,7 +32,7 @@ def gaussian_blur(x, sigma):
         x = x[0, 0]
     elif mode == "1hw":
         x = x[0]
-    
+
     return x
 
 
