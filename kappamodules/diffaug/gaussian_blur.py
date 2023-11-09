@@ -7,7 +7,6 @@ from torch import nn
 def gaussian_blur(x, sigma):
     # apply stylegan3-like blur (clean version of https://github.com/NVlabs/stylegan3/blob/main/training/loss.py#L53)
     _, c, h, w = x.shape
-    assert h == w, "non-square image case not implemented"
     size = int(sigma * 3)
     f = torch.arange(-size, size + 1, device=x.device).div(sigma).square().neg().exp2()
     f /= f.sum()
