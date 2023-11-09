@@ -4,7 +4,6 @@ import torch.nn.functional as F
 from torch import nn
 
 
-# TODO test
 def gaussian_blur(x, sigma):
     # support settings without batch dimension and/or without channel dimension
     if x.ndim == 2:
