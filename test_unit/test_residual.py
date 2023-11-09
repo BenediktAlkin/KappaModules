@@ -1,7 +1,10 @@
-from torch import nn
-import torch
 import unittest
+
+import torch
+from torch import nn
+
 from kappamodules import Residual
+
 
 class TestResidual(unittest.TestCase):
     def test_single_module(self):
@@ -50,5 +53,3 @@ class TestResidual(unittest.TestCase):
         self.assertTrue(torch.all(og_layer0.bias.grad == res_layer0.bias.grad))
         self.assertTrue(torch.all(og_layer1.weight.grad == res_layer1.weight.grad))
         self.assertTrue(torch.all(og_layer1.bias.grad == res_layer1.bias.grad))
-
-

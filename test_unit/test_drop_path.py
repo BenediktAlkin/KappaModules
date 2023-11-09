@@ -1,11 +1,11 @@
 import unittest
-from unittest.mock import patch
 
 import torch
 from torch import nn
 
 from kappamodules.drop_path import DropPath
 from original_modules.original_drop_path import OriginalDropPath
+
 
 class TestEfficientDropPath(unittest.TestCase):
     def is_equal_to_original(self, dim, drop_prob, stochastic_drop_prob, scale_by_keep, training, seed):

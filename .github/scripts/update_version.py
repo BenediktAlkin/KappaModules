@@ -1,5 +1,6 @@
 import argparse
 
+
 def get_tagname():
     parser = argparse.ArgumentParser(description='Replace version in setup.cfg with the created git tag')
     parser.add_argument('--tagname', help='tag name', required=True)
