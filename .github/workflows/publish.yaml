@@ -49,12 +49,12 @@ jobs:
         id: publish_to
         run: python .github/scripts/publish_to.py --tagname ${{ steps.get_tag.outputs.tag }}
       # publish to dev (always)
-      - name: publish to dev
-        uses: pypa/gh-action-pypi-publish@master
-        if: ${{ steps.publish_to.outputs.publish_to_dev }}
-        with:
-          password: ${{ secrets.PYPI_API_TOKEN_TEST }}
-          repository_url: https://test.pypi.org/legacy/
+#      - name: publish to dev
+#        uses: pypa/gh-action-pypi-publish@master
+#        if: ${{ steps.publish_to.outputs.publish_to_dev }}
+#        with:
+#          password: ${{ secrets.PYPI_API_TOKEN_TEST }}
+#          repository_url: https://test.pypi.org/legacy/
       # publish to production (only if version has exactly 3 numbers... e.g. v1.2.3)
       - name: publish to prod
         uses: pypa/gh-action-pypi-publish@release/v1
