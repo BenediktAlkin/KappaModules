@@ -1,71 +1,49 @@
 import torch
 from torch import nn
 
-from kappamodules.functional.pos_embed import (
-    get_sincos_1d_from_seqlen,
-    get_sincos_2d_from_seqlens,
-    get_sincos_3d_from_seqlens,
-)
+from kappamodules.functional.pos_embed import get_sincos_pos_embed_from_seqlens, interpolate_sincos
 
-
-class VitPosEmbed1d(nn.Module):
-    def __init__(self, seqlen: int, dim: int, is_learnable=False):
-        super().__init__()
-        self.seqlen = seqlen
-        self.dim = dim
-        self.is_learnable = is_learnable
-        if is_learnable:
-            self.embed = nn.Parameter(torch.zeros(1, seqlen, dim))
-        else:
-            self.register_buffer("embed", get_sincos_1d_from_seqlen(seqlen=seqlen, dim=dim).unsqueeze(0))
-        self.reset_parameters()
-
-    def reset_parameters(self):
-        if self.is_learnable:
-            nn.init.trunc_normal_(self.embed, std=.02)
-
-    def forward(self, x):
-        assert x.ndim == 3
-        return x + self.embed
-
-
-class VitPosEmbed2d(nn.Module):
-    def __init__(self, seqlens: int, dim: int, is_learnable=False):
+class VitPosEmbedNd(nn.Module):
+    def __init__(self, seqlens, dim: int, is_learnable: bool = False, allow_interpolation: bool = True):
         super().__init__()
         self.seqlens = seqlens
         self.dim = dim
         self.is_learnable = is_learnable
+        self.allow_interpolation = allow_interpolation
         if is_learnable:
             self.embed = nn.Parameter(torch.zeros(1, *seqlens, dim))
         else:
-            self.register_buffer("embed", get_sincos_2d_from_seqlens(seqlens=seqlens, dim=dim).unsqueeze(0))
+            self.register_buffer("embed", get_sincos_pos_embed_from_seqlens(seqlens=seqlens, dim=dim).unsqueeze(0))
         self.reset_parameters()
+
+    @property
+    def _expected_x_ndim(self):
+        return len(self.seqlens) + 2
 
     def reset_parameters(self):
         if self.is_learnable:
             nn.init.trunc_normal_(self.embed, std=.02)
 
     def forward(self, x):
-        assert x.ndim == 4
-        return x + self.embed
-
-
-class VitPosEmbed3d(nn.Module):
-    def __init__(self, seqlens: int, dim: int, is_learnable=False):
-        super().__init__()
-        self.seqlens = seqlens
-        self.dim = dim
-        self.is_learnable = is_learnable
-        if is_learnable:
-            self.embed = nn.Parameter(torch.zeros(1, *seqlens, dim))
+        assert x.ndim == self._expected_x_ndim
+        if x.shape[1:] != self.embed.shape[1:]:
+            assert self.allow_interpolation
+            embed = interpolate_sincos(embed=self.embed, seqlens=x.shape[1:-1])
         else:
-            self.register_buffer("embed", get_sincos_3d_from_seqlens(seqlens=seqlens, dim=dim).unsqueeze(0))
-        self.reset_parameters()
+            embed = self.embed
+        return x + embed
 
-    def reset_parameters(self):
-        if self.is_learnable:
-            nn.init.trunc_normal_(self.embed, std=.02)
+class VitPosEmbed1d(VitPosEmbedNd):
+    def __init__(self, seqlens, *args, **kwargs):
+        assert len(seqlens) == 1
+        super().__init__(seqlens=seqlens, *args, **kwargs)
 
-    def forward(self, x):
-        assert x.ndim == 5
-        return x + self.embed
+class VitPosEmbed2d(VitPosEmbedNd):
+    def __init__(self, seqlens, *args, **kwargs):
+        assert len(seqlens) == 2
+        super().__init__(seqlens=seqlens, *args, **kwargs)
+
+class VitPosEmbed3d(VitPosEmbedNd):
+    def __init__(self, seqlens, *args, **kwargs):
+        assert len(seqlens) == 3
+        super().__init__(seqlens=seqlens, *args, **kwargs)

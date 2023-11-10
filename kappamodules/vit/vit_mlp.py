@@ -1,6 +1,6 @@
 from torch import nn
 
-from kappamodules.init.functional import initialize_xavier_uniform_zero_bias
+from kappamodules.init.functional import init_xavier_uniform_zero_bias
 from kappamodules.utils.param_checking import to_2tuple
 
 
@@ -29,7 +29,7 @@ class VitMlp(nn.Module):
         if self.init == "torch":
             pass
         elif self.init == "xavier_uniform":
-            self.apply(initialize_xavier_uniform_zero_bias)
+            self.apply(init_xavier_uniform_zero_bias)
         else:
             raise NotImplementedError
 

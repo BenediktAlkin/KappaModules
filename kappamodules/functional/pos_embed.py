@@ -1,5 +1,6 @@
+import einops
 import torch
-
+import torch.nn.functional as F
 
 
 def get_sincos_1d_from_seqlen(seqlen: int, dim: int):
@@ -85,3 +86,13 @@ def get_sincos_pos_embed_from_grid(grid, dim: int):
     else:
         return torch.concat([pos_embed, padding], dim=-1)
 
+
+def interpolate_sincos(embed, seqlens, mode="bicubic"):
+    assert embed.ndim - 2 == len(seqlens)
+    embed = F.interpolate(
+        einops.rearrange(embed, "1 ... dim -> 1 dim ..."),
+        size=seqlens,
+        mode=mode,
+    )
+    embed = einops.rearrange(embed, "1 dim ... -> 1 ... dim")
+    return embed

@@ -1,6 +1,6 @@
 from torch import nn
 
-from kappamodules.init import initialize_xavier_uniform_zero_bias, initialize_qkv_seperately
+from kappamodules.init import init_xavier_uniform_zero_bias, init_qkv_seperately
 
 
 class DotProductAttentionSlow(nn.Module):
@@ -28,8 +28,8 @@ class DotProductAttentionSlow(nn.Module):
         self.proj_drop = nn.Dropout(proj_drop)
 
     def reset_parameters(self):
-        self.apply(initialize_xavier_uniform_zero_bias)
-        initialize_qkv_seperately(self)
+        self.apply(init_xavier_uniform_zero_bias)
+        init_qkv_seperately(self)
 
     def forward(self, x):
         B, N, C = x.shape

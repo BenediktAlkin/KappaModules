@@ -50,3 +50,17 @@ class TestVitPosEmbed(unittest.TestCase):
 
     def test_3d_learnable(self):
         self._test3d(is_learnable=True)
+
+
+    def test_interpolate_2d(self):
+        seqlens = (8, 12)
+        dim = 64
+        pos_embed = VitPosEmbed2d(seqlens=seqlens, dim=dim, is_learnable=False)
+        # forward pass with full resolution
+        x_full = torch.zeros(2, *seqlens, dim)
+        y_full = pos_embed(x_full)
+        # forward pass with half resolution
+        x_half = torch.zeros(2, *[seqlen // 2 for seqlen in seqlens], dim)
+        y_half = pos_embed(x_half)
+        self.assertEqual(x_half.shape, y_half.shape)
+
