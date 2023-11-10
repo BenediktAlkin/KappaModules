@@ -1,23 +1,37 @@
 import einops
 from torch import nn
 
-from kappamodules.init import init_xavier_uniform_zero_bias, init_qkv_seperately
+from kappamodules.init import init_xavier_uniform_zero_bias, init_xavier_uniform_merged_linear
 
 
 class LinearAttention(nn.Module):
-    def __init__(self, dim, num_heads=8, qkv_bias=True):
+    def __init__(
+            self,
+            dim,
+            num_heads=8,
+            qkv_bias=True,
+            init="xavier_uniform",
+    ):
         super().__init__()
         assert dim % num_heads == 0, "dim should be divisible by num_heads"
         self.num_heads = num_heads
         self.head_dim = dim // num_heads
         self.scale = self.head_dim ** -0.5
+        self.init = init
 
         self.qkv = nn.Linear(dim, dim * 3, bias=qkv_bias)
         self.proj = nn.Linear(dim, dim)
 
+        self.reset_parameters()
+
     def reset_parameters(self):
-        self.apply(init_xavier_uniform_zero_bias)
-        init_qkv_seperately(self)
+        if self.init == "torch":
+            pass
+        elif self.init == "xavier_uniform":
+            self.apply(init_xavier_uniform_zero_bias)
+            init_xavier_uniform_merged_linear(self.qkv, num_layers=3)
+        else:
+            raise NotImplementedError
 
     def _forward(self, x):
         q, k, v = einops.rearrange(

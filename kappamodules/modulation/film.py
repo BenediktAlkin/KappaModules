@@ -15,7 +15,9 @@ class Film(nn.Module):
         fan_in = self.modulation.weight.shape[1]
         assert self.modulation.weight.shape[0] % 2 == 0
         fan_out = self.modulation.weight.shape[0] // 2
-        if self.init == "xavier_uniform":
+        if self.init == "torch":
+            pass
+        elif self.init == "xavier_uniform":
             val = math.sqrt(6 / (fan_out + fan_in))
             nn.init.uniform_(self.modulation.weight, -val, val)
             nn.init.zeros_(self.modulation.bias)

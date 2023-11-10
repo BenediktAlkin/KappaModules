@@ -3,6 +3,7 @@ import math
 import torch
 import torch.nn.functional as F
 from torch import nn
+from kappamodules.init import init_xavier_uniform_zero_bias
 
 
 class WeightNormLinear(nn.Module):
@@ -25,12 +26,14 @@ class WeightNormLinear(nn.Module):
             fixed_g: bool = False,
             device=None,
             dtype=None,
+            init="xavier_uniform",
     ):
         super().__init__()
         factory_kwargs = {'device': device, 'dtype': dtype}
         self.in_features = in_features
         self.out_features = out_features
         self.fixed_g = fixed_g
+        self.init = init
         self.weight_v = nn.Parameter(torch.empty(out_features, in_features, **factory_kwargs))
         if fixed_g:
             self.register_buffer("weight_g", torch.empty(out_features, 1, **factory_kwargs))
@@ -42,20 +45,28 @@ class WeightNormLinear(nn.Module):
             self.register_parameter('bias', None)
         self.reset_parameters()
 
-    def reset_parameters(self) -> None:
-        torch.nn.init.kaiming_uniform_(self.weight_v, a=math.sqrt(5))
+    def reset_parameters(self):
+        # normal initialization
+        if self.init == "torch":
+            nn.init.kaiming_uniform_(self.weight_v, a=math.sqrt(5))
+            if self.bias is not None:
+                # noinspection PyProtectedMember
+                fan_in, _ = torch.nn.init._calculate_fan_in_and_fan_out(self.weight_v)
+                bound = 1 / math.sqrt(fan_in)
+                torch.nn.init.uniform_(self.bias, -bound, bound)
+        elif self.init == "xavier_uniform":
+            nn.init.xavier_uniform_(self.weight_v)
+            if m.bias is not None:
+                nn.init.constant_(self.bias, 0.)
+
+        # weight norm intialization
         with torch.no_grad():
             if self.fixed_g:
                 self.weight_g.fill_(1)
             else:
                 self.weight_g.copy_(torch.norm_except_dim(self.weight_v))
-        if self.bias is not None:
-            # noinspection PyProtectedMember
-            fan_in, _ = torch.nn.init._calculate_fan_in_and_fan_out(self.weight_v)
-            bound = 1 / math.sqrt(fan_in)
-            torch.nn.init.uniform_(self.bias, -bound, bound)
 
-    def extra_repr(self) -> str:
+    def extra_repr(self):
         return nn.Linear.extra_repr(self)
 
     def forward(self, x):

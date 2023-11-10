@@ -145,38 +145,11 @@ def init_linear_truncnormal_zero_bias(m, std=0.02):
 # endregion
 
 # region initialize merged nn.Linear layers like seperate nn.Linear layers
-def init_qkv_seperately(model):
+def init_xavier_uniform_merged_linear(model, num_layers):
     # https://github.com/facebookresearch/moco-v3/blob/main/vits.py#L35
-    for full_name, module in model.named_modules():
-        last_name = full_name.split(".")[-1]
-        if last_name == "qkv":
-            # treat the weights of Q, K, V separately
-            val = (6 / (module.weight.shape[0] // 3 + module.weight.shape[1])) ** 0.5
-            nn.init.uniform_(module.weight, -val, val)
-        if last_name == "qkv_mlpin":
-            # treat the weights of Q, K, V and MLP-in separately
-            # only implemented for mlp_ratio=4
-            input_dim = module.weight.shape[1]
-            assert module.weight.shape[0] == 7 * input_dim
-            qkv_bound = (3 / input_dim) ** 0.5
-            mlpin_bound = (6 / (5 * input_dim)) ** 0.5
-            nn.init.uniform_(module.weight[:3 * input_dim], -qkv_bound, qkv_bound)
-            nn.init.uniform_(module.weight[3 * input_dim:], -mlpin_bound, mlpin_bound)
-
-
-def init_modulation_seperately(model):
-    for full_name, module in model.named_modules():
-        last_name = full_name.split(".")[-1]
-        if last_name == "modulation":
-            # a modulation produces a stack of vectors -> treat each vector seperately
-            val = (6 / (module.weight.shape[0] // 2 + module.weight.shape[1])) ** 0.5
-            nn.init.uniform_(module.weight, -val, val)
-
-
-def init_seperately(model, name, denominator):
-    for full_name, module in model.named_modules():
-        last_name = full_name.split(".")[-1]
-        if last_name == name:
-            val = (6 / (module.weight.shape[0] // denominator + module.weight.shape[1])) ** 0.5
-            nn.init.uniform_(module.weight, -val, val)
+    assert isinstance(model, nn.Linear)
+    # treat the weights of the merged linear layer as individual layers
+    # e.g. with attention num_layers=3 (considers Q, K, V separately)
+    val = (6 / (module.weight.shape[0] // num_layers + module.weight.shape[1])) ** 0.5
+    nn.init.uniform_(module.weight, -val, val)
 # endregion
