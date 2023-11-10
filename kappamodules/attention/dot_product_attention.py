@@ -2,6 +2,8 @@ import einops
 import torch.nn.functional as F
 from torch import nn
 
+from kappamodules.init import initialize_xavier_uniform_zero_bias, initialize_qkv_seperately
+
 
 class DotProductAttention(nn.Module):
     def __init__(self, dim, num_heads=8, qkv_bias=True):
@@ -13,6 +15,10 @@ class DotProductAttention(nn.Module):
 
         self.qkv = nn.Linear(dim, dim * 3, bias=qkv_bias)
         self.proj = nn.Linear(dim, dim)
+
+    def reset_parameters(self):
+        self.apply(initialize_xavier_uniform_zero_bias)
+        initialize_qkv_seperately(self)
 
     def _forward(self, x):
         q, k, v = einops.rearrange(
