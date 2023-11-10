@@ -12,7 +12,7 @@ class TestVitMlp(unittest.TestCase):
         torch.manual_seed(seed)
         mlp0 = Mlp(in_features=4, hidden_features=12)
         torch.manual_seed(seed)
-        mlp1 = VitMlp(in_dim=4, hidden_dim=12)
+        mlp1 = VitMlp(in_dim=4, hidden_dim=12, init=None)
         torch.manual_seed(seed)
         x = torch.randn(3, 4)
         y0 = mlp0(x)

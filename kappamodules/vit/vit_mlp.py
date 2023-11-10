@@ -12,8 +12,10 @@ class VitMlp(nn.Module):
             out_dim=None,
             act_ctor=nn.GELU,
             bias=True,
+            init="xavier",
     ):
         super().__init__()
+        self.init = init
         out_dim = out_dim or in_dim
         hidden_dim = hidden_dim or in_dim
         bias1, bias2 = to_2tuple(bias)
@@ -24,7 +26,12 @@ class VitMlp(nn.Module):
         self.reset_parameters()
 
     def reset_parameters(self):
-        self.apply(initialize_xavier_uniform_zero_bias)
+        if self.init is None or self.init == "none":
+            pass
+        elif self.init == "xavier":
+            self.apply(initialize_xavier_uniform_zero_bias)
+        else:
+            raise NotImplementedError
 
     def forward(self, x):
         x = self.fc1(x)
