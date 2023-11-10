@@ -1,6 +1,5 @@
 from torch import nn
 
-# region layers
 ALL_BATCHNORMS = (
     nn.BatchNorm1d,
     nn.BatchNorm2d,
@@ -36,9 +35,6 @@ ALL_LAYERS = (
 )
 
 
-# endregion
-
-# region norm non-affine
 def init_norms_as_noaffine(m):
     if isinstance(m, ALL_NORMS):
         if m.bias is not None:
@@ -63,9 +59,6 @@ def init_batchnorm_as_noaffine(m):
             nn.init.constant_(m.weight, 1.)
 
 
-# endregion
-
-# region norm identity
 def init_norms_as_identity(m):
     if isinstance(m, ALL_NORMS):
         if m.bias is not None:
@@ -94,9 +87,6 @@ def init_batchnorm_as_identity(m):
         raise NotImplementedError
 
 
-# endregion
-
-# region bias=0
 def init_bias_to_zero(m):
     if isinstance(m, ALL_LAYERS):
         if m.bias is not None:
@@ -115,9 +105,6 @@ def init_conv_bias_to_zero(m):
             nn.init.constant_(m.bias, 0.)
 
 
-# endregion
-
-# region xavier + bias=0
 def init_xavier_uniform_zero_bias(m):
     if isinstance(m, ALL_LAYERS):
         nn.init.xavier_uniform_(m.weight)
@@ -125,9 +112,6 @@ def init_xavier_uniform_zero_bias(m):
             nn.init.constant_(m.bias, 0.)
 
 
-# endregion
-
-# region trunc_normal(std=0.02) + bias=0
 def init_truncnormal_zero_bias(m, std=0.02):
     if isinstance(m, ALL_LAYERS):
         nn.init.trunc_normal_(m.weight, std=std)
@@ -142,14 +126,10 @@ def init_linear_truncnormal_zero_bias(m, std=0.02):
             nn.init.constant_(m.bias, 0.)
 
 
-# endregion
-
-# region initialize merged nn.Linear layers like seperate nn.Linear layers
-def init_xavier_uniform_merged_linear(model, num_layers):
+def init_xavier_uniform_merged_linear(module, num_layers):
     # https://github.com/facebookresearch/moco-v3/blob/main/vits.py#L35
-    assert isinstance(model, nn.Linear)
+    assert isinstance(module, nn.Linear)
     # treat the weights of the merged linear layer as individual layers
     # e.g. with attention num_layers=3 (considers Q, K, V separately)
     val = (6 / (module.weight.shape[0] // num_layers + module.weight.shape[1])) ** 0.5
     nn.init.uniform_(module.weight, -val, val)
-# endregion

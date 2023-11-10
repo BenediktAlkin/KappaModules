@@ -56,7 +56,7 @@ class WeightNormLinear(nn.Module):
                 torch.nn.init.uniform_(self.bias, -bound, bound)
         elif self.init == "xavier_uniform":
             nn.init.xavier_uniform_(self.weight_v)
-            if m.bias is not None:
+            if self.bias is not None:
                 nn.init.constant_(self.bias, 0.)
 
         # weight norm intialization
