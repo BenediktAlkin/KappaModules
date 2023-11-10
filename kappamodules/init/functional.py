@@ -1,7 +1,7 @@
 from torch import nn
 
 # region layers
-ALL_BATCHNORMS = [
+ALL_BATCHNORMS = (
     nn.BatchNorm1d,
     nn.BatchNorm2d,
     nn.BatchNorm3d,
@@ -9,9 +9,9 @@ ALL_BATCHNORMS = [
     nn.LazyBatchNorm2d,
     nn.LazyBatchNorm3d,
     nn.SyncBatchNorm,
-]
+)
 
-ALL_NORMS = [
+ALL_NORMS = (
     *ALL_BATCHNORMS,
     nn.LayerNorm,
     nn.InstanceNorm1d,
@@ -19,21 +19,21 @@ ALL_NORMS = [
     nn.InstanceNorm3d,
     nn.GroupNorm,
     nn.LocalResponseNorm,
-]
+)
 
-ALL_CONVS = [
+ALL_CONVS = (
     nn.Conv1d,
     nn.Conv2d,
     nn.Conv3d,
     nn.ConvTranspose1d,
     nn.ConvTranspose2d,
     nn.ConvTranspose3d,
-]
+)
 
-ALL_LAYERS = [
+ALL_LAYERS = (
     nn.Linear,
     *ALL_CONVS,
-]
+)
 
 
 # endregion
