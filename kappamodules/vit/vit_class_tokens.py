@@ -17,12 +17,16 @@ class VitClassTokens(nn.Module):
             nn.init.normal_(self.tokens, std=.02)
 
     def forward(self, x):
+        if self.num_tokens == 0:
+            return x
         assert x.ndim == 3
         tokens = self.tokens.expand(len(x), -1, -1)
         x = torch.concat([tokens, x], dim=1)
         return x
 
     def split(self, x):
+        if self.num_tokens == 0:
+            return None, x
         assert x.ndim == 3
         cls_tokens = x[:, :self.num_tokens]
         patch_tokens = x[:, self.num_tokens:]

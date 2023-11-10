@@ -1,5 +1,8 @@
 from torch import nn
+
+from kappamodules.init.functional import initialize_xavier_uniform_zero_bias
 from kappamodules.utils.param_checking import to_2tuple
+
 
 class VitMlp(nn.Module):
     def __init__(
@@ -18,6 +21,10 @@ class VitMlp(nn.Module):
         self.fc1 = nn.Linear(in_dim, hidden_dim, bias=bias1)
         self.act = act_ctor()
         self.fc2 = nn.Linear(hidden_dim, out_dim, bias=bias2)
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        self.apply(initialize_xavier_uniform_zero_bias)
 
     def forward(self, x):
         x = self.fc1(x)
