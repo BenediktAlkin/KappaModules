@@ -3,7 +3,7 @@ import torch
 from torch import nn
 
 
-class SeperateNorm(nn.Module):
+class VitSeperateNorm(nn.Module):
     def __init__(
             self,
             dim,
