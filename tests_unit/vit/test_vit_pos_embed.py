@@ -10,7 +10,7 @@ class TestVitPosEmbed(unittest.TestCase):
         seqlen = 4
         dim = 8
         x = torch.zeros(2, seqlen, dim)
-        pos_embed = VitPosEmbed1d(seqlen=seqlen, dim=dim, is_learnable=is_learnable)
+        pos_embed = VitPosEmbed1d(seqlens=(seqlen,), dim=dim, is_learnable=is_learnable)
         y = pos_embed(x)
         self.assertEqual(x.shape, y.shape)
         # check learnable initialization

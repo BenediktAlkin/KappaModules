@@ -3,6 +3,7 @@ from torch import nn
 
 from kappamodules.functional.pos_embed import get_sincos_pos_embed_from_seqlens, interpolate_sincos
 
+
 class VitPosEmbedNd(nn.Module):
     def __init__(self, seqlens, dim: int, is_learnable: bool = False, allow_interpolation: bool = True):
         super().__init__()
@@ -33,15 +34,18 @@ class VitPosEmbedNd(nn.Module):
             embed = self.embed
         return x + embed
 
+
 class VitPosEmbed1d(VitPosEmbedNd):
     def __init__(self, seqlens, *args, **kwargs):
         assert len(seqlens) == 1
         super().__init__(seqlens=seqlens, *args, **kwargs)
 
+
 class VitPosEmbed2d(VitPosEmbedNd):
     def __init__(self, seqlens, *args, **kwargs):
         assert len(seqlens) == 2
         super().__init__(seqlens=seqlens, *args, **kwargs)
+
 
 class VitPosEmbed3d(VitPosEmbedNd):
     def __init__(self, seqlens, *args, **kwargs):
