@@ -39,7 +39,7 @@ ALL_LAYERS = (
 # endregion
 
 # region norm non-affine
-def initialize_norms_as_noaffine(m):
+def init_norms_as_noaffine(m):
     if isinstance(m, ALL_NORMS):
         if m.bias is not None:
             nn.init.constant_(m.bias, 0.)
@@ -47,7 +47,7 @@ def initialize_norms_as_noaffine(m):
             nn.init.constant_(m.weight, 1.)
 
 
-def initialize_layernorm_as_noaffine(m):
+def init_layernorm_as_noaffine(m):
     if isinstance(m, nn.LayerNorm):
         if m.bias is not None:
             nn.init.constant_(m.bias, 0.)
@@ -55,7 +55,7 @@ def initialize_layernorm_as_noaffine(m):
             nn.init.constant_(m.weight, 1.)
 
 
-def initialize_batchnorm_as_noaffine(m):
+def init_batchnorm_as_noaffine(m):
     if isinstance(m, ALL_BATCHNORMS):
         if m.bias is not None:
             nn.init.constant_(m.bias, 0.)
@@ -66,7 +66,7 @@ def initialize_batchnorm_as_noaffine(m):
 # endregion
 
 # region norm identity
-def initialize_norms_as_identity(m):
+def init_norms_as_identity(m):
     if isinstance(m, ALL_NORMS):
         if m.bias is not None:
             nn.init.constant_(m.bias, 0.)
@@ -74,7 +74,7 @@ def initialize_norms_as_identity(m):
             nn.init.constant_(m.weight, 0.)
 
 
-def initialize_layernorm_as_identity(m):
+def init_layernorm_as_identity(m):
     if isinstance(m, nn.LayerNorm):
         if m.bias is not None:
             nn.init.constant_(m.bias, 0.)
@@ -84,7 +84,7 @@ def initialize_layernorm_as_identity(m):
         raise NotImplementedError
 
 
-def initialize_batchnorm_as_identity(m):
+def init_batchnorm_as_identity(m):
     if isinstance(m, ALL_BATCHNORMS):
         if m.bias is not None:
             nn.init.constant_(m.bias, 0.)
@@ -97,19 +97,19 @@ def initialize_batchnorm_as_identity(m):
 # endregion
 
 # region bias=0
-def initialize_bias_to_zero(m):
+def init_bias_to_zero(m):
     if isinstance(m, ALL_LAYERS):
         if m.bias is not None:
             nn.init.constant_(m.bias, 0.)
 
 
-def initialize_linear_bias_to_zero(m):
+def init_linear_bias_to_zero(m):
     if isinstance(m, nn.Linear):
         if m.bias is not None:
             nn.init.constant_(m.bias, 0.)
 
 
-def initialize_conv_bias_to_zero(m):
+def init_conv_bias_to_zero(m):
     if isinstance(m, ALL_CONVS):
         if m.bias is not None:
             nn.init.constant_(m.bias, 0.)
@@ -118,7 +118,7 @@ def initialize_conv_bias_to_zero(m):
 # endregion
 
 # region xavier + bias=0
-def initialize_xavier_uniform_zero_bias(m):
+def init_xavier_uniform_zero_bias(m):
     if isinstance(m, ALL_LAYERS):
         nn.init.xavier_uniform_(m.weight)
         if m.bias is not None:
@@ -128,14 +128,14 @@ def initialize_xavier_uniform_zero_bias(m):
 # endregion
 
 # region trunc_normal(std=0.02) + bias=0
-def initialize_truncnormal_zero_bias(m, std=0.02):
+def init_truncnormal_zero_bias(m, std=0.02):
     if isinstance(m, ALL_LAYERS):
         nn.init.trunc_normal_(m.weight, std=std)
         if m.bias is not None:
             nn.init.constant_(m.bias, 0.)
 
 
-def initialize_linear_truncnormal_zero_bias(m, std=0.02):
+def init_linear_truncnormal_zero_bias(m, std=0.02):
     if isinstance(m, nn.Linear):
         nn.init.trunc_normal_(m.weight, std=std)
         if m.bias is not None:
@@ -145,7 +145,7 @@ def initialize_linear_truncnormal_zero_bias(m, std=0.02):
 # endregion
 
 # region initialize merged nn.Linear layers like seperate nn.Linear layers
-def initialize_qkv_seperately(model):
+def init_qkv_seperately(model):
     # https://github.com/facebookresearch/moco-v3/blob/main/vits.py#L35
     for full_name, module in model.named_modules():
         last_name = full_name.split(".")[-1]
@@ -164,7 +164,7 @@ def initialize_qkv_seperately(model):
             nn.init.uniform_(module.weight[3 * input_dim:], -mlpin_bound, mlpin_bound)
 
 
-def initialize_modulation_seperately(model):
+def init_modulation_seperately(model):
     for full_name, module in model.named_modules():
         last_name = full_name.split(".")[-1]
         if last_name == "modulation":
@@ -173,7 +173,7 @@ def initialize_modulation_seperately(model):
             nn.init.uniform_(module.weight, -val, val)
 
 
-def initialize_seperately(model, name, denominator):
+def init_seperately(model, name, denominator):
     for full_name, module in model.named_modules():
         last_name = full_name.split(".")[-1]
         if last_name == name:
