@@ -12,7 +12,7 @@ class VitMlp(nn.Module):
             out_dim=None,
             act_ctor=nn.GELU,
             bias=True,
-            init="xavier",
+            init="xavier_uniform",
     ):
         super().__init__()
         self.init = init
@@ -26,9 +26,9 @@ class VitMlp(nn.Module):
         self.reset_parameters()
 
     def reset_parameters(self):
-        if self.init is None or self.init == "none":
+        if self.init == "torch":
             pass
-        elif self.init == "xavier":
+        elif self.init == "xavier_uniform":
             self.apply(initialize_xavier_uniform_zero_bias)
         else:
             raise NotImplementedError
