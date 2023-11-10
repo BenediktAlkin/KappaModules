@@ -3,21 +3,21 @@ import torch
 from torch import nn
 
 
-class VitSeperateNorm(nn.Module):
+class SeperateNorm(nn.Module):
     def __init__(
             self,
             dim,
             num_aux_tokens=1,
-            aux_norm_ctor=nn.LayerNorm,
-            patch_norm_ctor=nn.LayerNorm,
+            aux_norm=nn.LayerNorm,
+            patch_norm=nn.LayerNorm,
             affine=True,
             eps=1e-6,
     ):
         assert num_aux_tokens > 0
         super().__init__()
         self.num_aux_tokens = num_aux_tokens
-        self.aux_norm = self._instantiate_norm(dim=dim * num_aux_tokens, ctor=aux_norm_ctor, eps=eps, affine=affine)
-        self.patch_norm = self._instantiate_norm(dim=dim, ctor=patch_norm_ctor, eps=eps, affine=affine)
+        self.aux_norm = self._instantiate_norm(dim=dim * num_aux_tokens, ctor=aux_norm, eps=eps, affine=affine)
+        self.patch_norm = self._instantiate_norm(dim=dim, ctor=patch_norm, eps=eps, affine=affine)
 
     @staticmethod
     def _instantiate_norm(ctor, dim, affine, eps):
