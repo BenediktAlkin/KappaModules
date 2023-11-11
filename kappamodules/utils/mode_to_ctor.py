@@ -4,8 +4,10 @@ from kappamodules.layers import Identity
 
 
 def mode_to_norm_ctor(mode):
+    if mode is None:
+        return Identity, True
     mode = mode.lower.replace("_", "")
-    if mode is None or mode == "none":
+    if mode == "none":
         return Identity, True
     if mode in ["bn", "batchnorm", "batchnorm1d"]:
         return nn.BatchNorm1d, False
