@@ -16,7 +16,8 @@ class VitPatchEmbed(nn.Module):
         for i in range(self.ndim):
             assert resolution[i] % self.patch_size[i] == 0, f"resolution[{i}] % patch_size[{i}] != 0"
         self.seqlens = [resolution[i] // self.patch_size[i] for i in range(self.ndim)]
-        self.num_patches = np.prod(self.seqlens)
+        # use primitive type as np.prod gives np.int which can is not compatible with all serialization/logging
+        self.num_patches = int(np.prod(self.seqlens))
 
         if self.ndim == 1:
             conv_ctor = nn.Conv1d
