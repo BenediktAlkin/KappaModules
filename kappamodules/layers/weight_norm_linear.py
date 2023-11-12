@@ -29,7 +29,7 @@ class WeightNormLinear(nn.Module):
             init="xavier_uniform",
     ):
         super().__init__()
-        factory_kwargs = {'device': device, 'dtype': dtype}
+        factory_kwargs = {"device": device, "dtype": dtype}
         self.in_features = in_features
         self.out_features = out_features
         self.fixed_g = fixed_g
