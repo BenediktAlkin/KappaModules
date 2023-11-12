@@ -1,6 +1,6 @@
 from torch import nn
 
-from kappamodules.init.functional import init_xavier_uniform_zero_bias
+from kappamodules.init import init_xavier_uniform_zero_bias, init_truncnormal_zero_bias
 from kappamodules.utils.param_checking import to_2tuple
 
 
@@ -30,6 +30,8 @@ class VitMlp(nn.Module):
             pass
         elif self.init == "xavier_uniform":
             self.apply(init_xavier_uniform_zero_bias)
+        elif self.init == "truncnormal":
+            self.apply(init_truncnormal_zero_bias)
         else:
             raise NotImplementedError
 

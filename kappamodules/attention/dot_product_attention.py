@@ -2,7 +2,11 @@ import einops
 import torch.nn.functional as F
 from torch import nn
 
-from kappamodules.init import init_xavier_uniform_zero_bias, init_xavier_uniform_merged_linear
+from kappamodules.init import (
+    init_xavier_uniform_zero_bias,
+    init_xavier_uniform_merged_linear,
+    init_truncnormal_zero_bias,
+)
 
 
 class DotProductAttention(nn.Module):
@@ -25,6 +29,8 @@ class DotProductAttention(nn.Module):
         elif self.init == "xavier_uniform":
             self.apply(init_xavier_uniform_zero_bias)
             init_xavier_uniform_merged_linear(self.qkv, num_layers=3)
+        elif self.init == "truncnormal":
+            self.apply(init_truncnormal_zero_bias)
         else:
             raise NotImplementedError
 
