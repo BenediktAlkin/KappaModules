@@ -10,7 +10,7 @@ from kappamodules.init import (
 
 
 class DotProductAttention(nn.Module):
-    def __init__(self, dim, num_heads=8, qkv_bias=True, init="xavier_uniform"):
+    def __init__(self, dim, num_heads=8, qkv_bias=True, init="truncnormal"):
         super().__init__()
         assert hasattr(F, "scaled_dot_product_attention")
         assert dim % num_heads == 0, "dim should be divisible by num_heads"

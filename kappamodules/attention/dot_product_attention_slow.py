@@ -17,7 +17,7 @@ class DotProductAttentionSlow(nn.Module):
             attn_drop=0.,
             proj_drop=0.,
             norm_layer=nn.LayerNorm,
-            init="xavier_uniform",
+            init="truncnormal",
     ):
         super().__init__()
         assert dim % num_heads == 0, "dim should be divisible by num_heads"

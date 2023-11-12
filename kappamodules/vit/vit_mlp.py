@@ -12,7 +12,7 @@ class VitMlp(nn.Module):
             out_dim=None,
             act_ctor=nn.GELU,
             bias=True,
-            init="xavier_uniform",
+            init="truncnormal",
     ):
         super().__init__()
         self.init = init
