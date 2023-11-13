@@ -17,14 +17,14 @@ class DotProductAttentionSlow(nn.Module):
             attn_drop=0.,
             proj_drop=0.,
             norm_layer=nn.LayerNorm,
-            init="truncnormal",
+            init_weights="truncnormal",
     ):
         super().__init__()
         assert dim % num_heads == 0, "dim should be divisible by num_heads"
         self.num_heads = num_heads
         self.head_dim = dim // num_heads
         self.scale = self.head_dim ** -0.5
-        self.init = init
+        self.init_weights = init_weights
 
         self.qkv = nn.Linear(dim, dim * 3, bias=qkv_bias)
         self.q_norm = norm_layer(self.head_dim) if qk_norm else nn.Identity()
@@ -36,12 +36,12 @@ class DotProductAttentionSlow(nn.Module):
         self.reset_parameters()
 
     def reset_parameters(self):
-        if self.init == "torch":
+        if self.init_weights == "torch":
             pass
-        elif self.init == "xavier_uniform":
+        elif self.init_weights == "xavier_uniform":
             self.apply(init_xavier_uniform_zero_bias)
             init_xavier_uniform_merged_linear(self.qkv, num_layers=3)
-        elif self.init == "truncnormal":
+        elif self.init_weights == "truncnormal":
             self.apply(init_truncnormal_zero_bias)
         else:
             raise NotImplementedError

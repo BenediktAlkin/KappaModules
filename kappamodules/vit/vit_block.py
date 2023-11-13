@@ -27,10 +27,10 @@ class VitBlock(nn.Module):
         mlp_hidden_dim = mlp_hidden_dim or dim * 4
         self.norm1 = norm_ctor(dim, eps=eps)
         attn_ctor = DotProductAttention1d if use_flash_attention else DotProductAttentionSlow
-        self.attn = attn_ctor(dim=dim, num_heads=num_heads, qkv_bias=qkv_bias, init=init_weights)
+        self.attn = attn_ctor(dim=dim, num_heads=num_heads, qkv_bias=qkv_bias, init_weights=init_weights)
         self.drop_path1 = DropPath(drop_prob=drop_path)
         self.norm2 = norm_ctor(dim, eps=eps)
-        self.mlp = VitMlp(in_dim=dim, hidden_dim=mlp_hidden_dim, act_ctor=act_ctor, init=init_weights)
+        self.mlp = VitMlp(in_dim=dim, hidden_dim=mlp_hidden_dim, act_ctor=act_ctor, init_weights=init_weights)
         self.drop_path2 = DropPath(drop_prob=drop_path)
         self.reset_parameters()
 

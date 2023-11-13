@@ -26,14 +26,14 @@ class WeightNormLinear(nn.Module):
             fixed_g: bool = False,
             device=None,
             dtype=None,
-            init="xavier_uniform",
+            init_weights="xavier_uniform",
     ):
         super().__init__()
         factory_kwargs = {"device": device, "dtype": dtype}
         self.in_features = in_features
         self.out_features = out_features
         self.fixed_g = fixed_g
-        self.init = init
+        self.init_weights = init_weights
         self.weight_v = nn.Parameter(torch.empty(out_features, in_features, **factory_kwargs))
         if fixed_g:
             self.register_buffer("weight_g", torch.empty(out_features, 1, **factory_kwargs))
@@ -47,14 +47,14 @@ class WeightNormLinear(nn.Module):
 
     def reset_parameters(self):
         # normal initialization
-        if self.init == "torch":
+        if self.init_weights == "torch":
             nn.init.kaiming_uniform_(self.weight_v, a=math.sqrt(5))
             if self.bias is not None:
                 # noinspection PyProtectedMember
                 fan_in, _ = torch.nn.init._calculate_fan_in_and_fan_out(self.weight_v)
                 bound = 1 / math.sqrt(fan_in)
                 torch.nn.init.uniform_(self.bias, -bound, bound)
-        elif self.init == "xavier_uniform":
+        elif self.init_weights == "xavier_uniform":
             nn.init.xavier_uniform_(self.weight_v)
             if self.bias is not None:
                 nn.init.constant_(self.bias, 0.)

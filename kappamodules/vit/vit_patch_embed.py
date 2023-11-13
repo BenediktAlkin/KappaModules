@@ -7,10 +7,10 @@ from kappamodules.utils.param_checking import to_ntuple
 
 
 class VitPatchEmbed(nn.Module):
-    def __init__(self, dim, num_channels, resolution, patch_size, init="xavier_uniform"):
+    def __init__(self, dim, num_channels, resolution, patch_size, init_weights="xavier_uniform"):
         super().__init__()
         self.resolution = resolution
-        self.init = init
+        self.init_weights = init_weights
         self.ndim = len(resolution)
         self.patch_size = to_ntuple(patch_size, n=self.ndim)
         for i in range(self.ndim):
@@ -32,7 +32,7 @@ class VitPatchEmbed(nn.Module):
         self.reset_parameters()
 
     def reset_parameters(self):
-        if self.init == "xavier_uniform":
+        if self.init_weights == "xavier_uniform":
             # initialize as nn.Linear
             w = self.proj.weight.data
             nn.init.xavier_uniform_(w.view([w.shape[0], -1]))

@@ -15,7 +15,7 @@ class TestWeightNormLinear(unittest.TestCase):
             native.weight_g.data.fill_(1)
         # custom layer
         torch.manual_seed(seed)
-        custom = WeightNormLinear(dim_in, dim_out, bias=bias, fixed_g=fixed_g, init="torch")
+        custom = WeightNormLinear(dim_in, dim_out, bias=bias, fixed_g=fixed_g, init_weights="torch")
         # checks
         self.assertTrue(torch.all(native.weight_g == custom.weight_g))
         self.assertTrue(torch.all(native.weight_v == custom.weight_v))

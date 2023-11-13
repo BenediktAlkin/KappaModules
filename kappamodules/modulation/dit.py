@@ -2,19 +2,19 @@ from torch import nn
 import math
 from kappamodules.utils.shapes import to_ndim
 
-class Film(nn.Module):
+class Dit(nn.Module):
     def __init__(self, cond_dim, out_dim, init_weights="xavier_uniform"):
         super().__init__()
         self.in_dim = cond_dim
         self.out_dim = out_dim
-        self.modulation = nn.Linear(cond_dim, out_dim)
+        self.modulation = nn.Linear(cond_dim, 6 * out_dim)
         self.init_weights = init_weights
         self.reset_parameters()
 
     def reset_parameters(self):
         fan_in = self.modulation.weight.shape[1]
-        assert self.modulation.weight.shape[0] % 2 == 0
-        fan_out = self.modulation.weight.shape[0] // 2
+        assert self.modulation.weight.shape[0] % 6 == 0
+        fan_out = self.modulation.weight.shape[0] // 6
         if self.init_weights == "torch":
             pass
         elif self.init_weights == "xavier_uniform":
@@ -24,6 +24,6 @@ class Film(nn.Module):
         else:
             raise NotImplementedError
 
-    def forward(self, x, cond):
-        scale, shift = self.modulation(to_ndim(cond, ndim=x.ndim)).chunk(2, dim=1)
-        return x * (scale + 1) + shift
+    def forward(self, cond):
+        scale1, shift1, gate1, scale2, shift2, gate2 = self.modulation(cond).chunk(6, dim=1)
+        return scale1, shift1, gate1, scale2, shift2, gate2

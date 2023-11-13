@@ -12,10 +12,10 @@ class VitMlp(nn.Module):
             out_dim=None,
             act_ctor=nn.GELU,
             bias=True,
-            init="truncnormal",
+            init_weights="truncnormal",
     ):
         super().__init__()
-        self.init = init
+        self.init_weights = init_weights
         out_dim = out_dim or in_dim
         hidden_dim = hidden_dim or in_dim
         bias1, bias2 = to_2tuple(bias)
@@ -26,11 +26,11 @@ class VitMlp(nn.Module):
         self.reset_parameters()
 
     def reset_parameters(self):
-        if self.init == "torch":
+        if self.init_weights == "torch":
             pass
-        elif self.init == "xavier_uniform":
+        elif self.init_weights == "xavier_uniform":
             self.apply(init_xavier_uniform_zero_bias)
-        elif self.init == "truncnormal":
+        elif self.init_weights == "truncnormal":
             self.apply(init_truncnormal_zero_bias)
         else:
             raise NotImplementedError

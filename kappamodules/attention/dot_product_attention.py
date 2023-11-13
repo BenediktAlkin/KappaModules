@@ -10,13 +10,13 @@ from kappamodules.init import (
 
 
 class DotProductAttention(nn.Module):
-    def __init__(self, dim, num_heads=8, qkv_bias=True, init="truncnormal"):
+    def __init__(self, dim, num_heads=8, qkv_bias=True, init_weights="truncnormal"):
         super().__init__()
         assert hasattr(F, "scaled_dot_product_attention")
         assert dim % num_heads == 0, "dim should be divisible by num_heads"
         self.num_heads = num_heads
         self.head_dim = dim // num_heads
-        self.init = init
+        self.init_weights = init_weights
 
         self.qkv = nn.Linear(dim, dim * 3, bias=qkv_bias)
         self.proj = nn.Linear(dim, dim)
@@ -24,12 +24,12 @@ class DotProductAttention(nn.Module):
         self.reset_parameters()
 
     def reset_parameters(self):
-        if self.init == "torch":
+        if self.init_weights == "torch":
             pass
-        elif self.init == "xavier_uniform":
+        elif self.init_weights == "xavier_uniform":
             self.apply(init_xavier_uniform_zero_bias)
             init_xavier_uniform_merged_linear(self.qkv, num_layers=3)
-        elif self.init == "truncnormal":
+        elif self.init_weights == "truncnormal":
             self.apply(init_truncnormal_zero_bias)
         else:
             raise NotImplementedError
