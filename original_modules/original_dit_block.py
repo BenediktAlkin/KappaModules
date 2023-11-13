@@ -1,3 +1,4 @@
+# noinspection PyProtectedMember
 from timm.models.vision_transformer import Attention, Mlp
 from torch import nn
 

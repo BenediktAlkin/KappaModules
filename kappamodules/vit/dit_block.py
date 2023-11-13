@@ -1,12 +1,14 @@
 from functools import partial
+
 from torch import nn
 
 from kappamodules.attention import DotProductAttention1d, DotProductAttentionSlow
 from kappamodules.init import init_norms_as_noaffine
 from kappamodules.layers import DropPath
-from kappamodules.vit import VitMlp
 from kappamodules.modulation import Dit
 from kappamodules.modulation.functional import modulate_scale_shift_gate
+from kappamodules.vit import VitMlp
+
 
 class DitBlock(nn.Module):
     """ adaptive norm block (https://github.com/facebookresearch/DiT) """

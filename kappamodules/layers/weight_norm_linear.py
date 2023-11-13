@@ -3,7 +3,6 @@ import math
 import torch
 import torch.nn.functional as F
 from torch import nn
-from kappamodules.init import init_xavier_uniform_zero_bias
 
 
 class WeightNormLinear(nn.Module):

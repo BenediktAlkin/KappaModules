@@ -1,6 +1,9 @@
-from torch import nn
 import math
+
+from torch import nn
+
 from kappamodules.utils.shapes import to_ndim
+
 
 class Film(nn.Module):
     def __init__(self, cond_dim, out_dim, init_weights="xavier_uniform"):

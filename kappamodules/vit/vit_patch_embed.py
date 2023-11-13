@@ -1,6 +1,5 @@
 import einops
 import numpy as np
-import torch
 from torch import nn
 
 from kappamodules.utils.param_checking import to_ntuple

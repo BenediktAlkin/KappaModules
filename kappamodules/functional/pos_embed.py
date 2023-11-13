@@ -7,6 +7,7 @@ def get_sincos_1d_from_seqlen(seqlen: int, dim: int):
     grid = torch.arange(seqlen, dtype=torch.double)
     return get_sincos_1d_from_grid(grid=grid, dim=dim)
 
+
 def get_sincos_1d_from_grid(grid, dim: int):
     if dim % 2 == 0:
         padding = None
@@ -32,6 +33,7 @@ def get_sincos_1d_from_grid(grid, dim: int):
     else:
         return torch.concat([emb, padding], dim=-1)
 
+
 def get_sincos_2d_from_seqlens(seqlens, dim: int):
     seqlen_h, seqlen_w = seqlens
     grid_h = torch.arange(seqlen_h, dtype=torch.double)
@@ -40,12 +42,14 @@ def get_sincos_2d_from_seqlens(seqlens, dim: int):
     grid = torch.stack(grid).reshape(2, seqlen_h, seqlen_w)
     return get_2d_sincos_pos_embed_from_grid(grid=grid, dim=dim)
 
+
 def get_2d_sincos_pos_embed_from_grid(grid, dim: int):
     assert dim % 2 == 0
     grid_h, grid_w = grid
     emb_h = get_sincos_1d_from_grid(grid=grid_h, dim=dim // 2)
     emb_w = get_sincos_1d_from_grid(grid=grid_w, dim=dim // 2)
     return torch.concat([emb_h, emb_w], dim=-1)
+
 
 def get_sincos_3d_from_seqlens(seqlens, dim: int):
     seqlen_x, seqlen_y, seqlen_z = seqlens
@@ -56,6 +60,7 @@ def get_sincos_3d_from_seqlens(seqlens, dim: int):
     grid = torch.stack(grid).reshape(3, seqlen_x, seqlen_y, seqlen_z)
     return get_3d_sincos_pos_embed_from_grid(grid=grid, dim=dim)
 
+
 def get_3d_sincos_pos_embed_from_grid(grid, dim: int):
     assert dim % 3 == 0
     grid_x, grid_y, grid_z = grid
@@ -64,6 +69,7 @@ def get_3d_sincos_pos_embed_from_grid(grid, dim: int):
     emb_z = get_sincos_1d_from_grid(grid=grid_z, dim=dim // 3)
     return torch.concat([emb_x, emb_y, emb_z], dim=-1)
 
+
 def get_sincos_pos_embed_from_seqlens(seqlens, dim: int):
     assert isinstance(seqlens, (tuple, list))
     ndim = len(seqlens)
@@ -71,6 +77,7 @@ def get_sincos_pos_embed_from_seqlens(seqlens, dim: int):
     grid = torch.meshgrid(*grids, indexing="xy")
     grid = torch.stack(grid).reshape(ndim, *seqlens)
     return get_sincos_pos_embed_from_grid(grid=grid, dim=dim)
+
 
 def get_sincos_pos_embed_from_grid(grid, dim: int):
     ndim = grid.size(0)

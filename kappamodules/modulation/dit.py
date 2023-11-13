@@ -1,6 +1,7 @@
-from torch import nn
 import math
-from kappamodules.utils.shapes import to_ndim
+
+from torch import nn
+
 
 class Dit(nn.Module):
     def __init__(self, cond_dim, out_dim, init_weights="xavier_uniform"):
