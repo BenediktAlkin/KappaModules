@@ -7,7 +7,7 @@ from kappamodules.init import init_norms_as_noaffine
 from kappamodules.layers import DropPath
 from kappamodules.modulation import Dit
 from kappamodules.modulation.functional import modulate_scale_shift_gate
-from kappamodules.vit import VitMlp
+from .vit_mlp import VitMlp
 
 
 class DitBlock(nn.Module):
