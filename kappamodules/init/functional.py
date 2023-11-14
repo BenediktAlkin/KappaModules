@@ -35,6 +35,13 @@ ALL_LAYERS = (
 )
 
 
+def init_norm_as_noaffine(m):
+    if isinstance(m, ALL_NORMS):
+        if m.bias is not None:
+            nn.init.constant_(m.bias, 0.)
+        if m.weight is not None:
+            nn.init.constant_(m.weight, 1.)
+
 def init_norms_as_noaffine(m):
     if isinstance(m, ALL_NORMS):
         if m.bias is not None:
@@ -57,6 +64,14 @@ def init_batchnorm_as_noaffine(m):
             nn.init.constant_(m.bias, 0.)
         if m.weight is not None:
             nn.init.constant_(m.weight, 1.)
+
+
+def init_norm_as_identity(m):
+    if isinstance(m, ALL_NORMS):
+        if m.bias is not None:
+            nn.init.constant_(m.bias, 0.)
+        if m.weight is not None:
+            nn.init.constant_(m.weight, 0.)
 
 
 def init_norms_as_identity(m):
@@ -105,9 +120,9 @@ def init_conv_bias_to_zero(m):
             nn.init.constant_(m.bias, 0.)
 
 
-def init_xavier_uniform_zero_bias(m):
+def init_xavier_uniform_zero_bias(m, gain: float = 1.):
     if isinstance(m, ALL_LAYERS):
-        nn.init.xavier_uniform_(m.weight)
+        nn.init.xavier_uniform_(m.weight, gain=gain)
         if m.bias is not None:
             nn.init.constant_(m.bias, 0.)
 
