@@ -19,3 +19,4 @@ class TestDitBlock(unittest.TestCase):
         y = block(x, cond)
         y_og = block_og(x, cond)
         self.assertEqual(x.shape, y.shape)
+        self.assertTrue(torch.allclose(y_og, y))

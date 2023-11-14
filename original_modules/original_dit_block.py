@@ -25,7 +25,7 @@ class OriginalDitBlock(nn.Module):
         return x * (1 + scale.unsqueeze(1)) + shift.unsqueeze(1)
 
     def forward(self, x, c):
-        shift_msa, scale_msa, gate_msa, shift_mlp, scale_mlp, gate_mlp = self.adaLN_modulation(c).chunk(6, dim=1)
+        scale_msa, shift_msa, gate_msa, scale_mlp, shift_mlp, gate_mlp = self.adaLN_modulation(c).chunk(6, dim=1)
         x = x + gate_msa.unsqueeze(1) * self.attn(self.modulate(self.norm1(x), shift_msa, scale_msa))
         x = x + gate_mlp.unsqueeze(1) * self.mlp(self.modulate(self.norm2(x), shift_mlp, scale_mlp))
         return x

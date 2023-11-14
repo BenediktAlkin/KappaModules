@@ -5,8 +5,7 @@ def modulate_scale_shift(x, scale, shift):
     return x * (1 + scale) + shift
 
 
-def modulate_scale_shift_gate(x, scale, shift, gate):
-    x = modulate_scale_shift(x, scale=scale, shift=shift)
+def modulate_gate(x, gate):
     if x.ndim == 3:
         gate = gate.unsqueeze(1)
     return gate * x

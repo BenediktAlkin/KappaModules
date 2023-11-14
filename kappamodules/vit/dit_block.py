@@ -6,7 +6,7 @@ from kappamodules.attention import DotProductAttention1d, DotProductAttentionSlo
 from kappamodules.init import init_norms_as_noaffine
 from kappamodules.layers import DropPath
 from kappamodules.modulation import Dit
-from kappamodules.modulation.functional import modulate_scale_shift_gate
+from kappamodules.modulation.functional import modulate_scale_shift, modulate_gate
 from .vit_mlp import VitMlp
 
 
@@ -58,14 +58,10 @@ class DitBlock(nn.Module):
             raise NotImplementedError
 
     def _attn_residual_path(self, x, scale, shift, gate):
-        return modulate_scale_shift_gate(self.attn(self.norm1(x)), scale=scale, shift=shift, gate=gate)
+        return modulate_gate(self.attn(modulate_scale_shift(self.norm1(x), scale=scale, shift=shift)), gate=gate)
 
     def _mlp_residual_path(self, x, scale, shift, gate):
-        return modulate_scale_shift_gate(self.mlp(self.norm2(x)), scale=scale, shift=shift, gate=gate)
-
-    @staticmethod
-    def modulate(x, scale, shift):
-        return x * (1 + scale.unsqueeze(1)) + shift.unsqueeze(1)
+        return modulate_gate(self.mlp(modulate_scale_shift(self.norm2(x), scale=scale, shift=shift)), gate=gate)
 
     def forward(self, x, cond):
         scale1, shift1, gate1, scale2, shift2, gate2 = self.modulation(cond)
