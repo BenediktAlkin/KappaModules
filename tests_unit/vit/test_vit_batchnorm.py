@@ -10,8 +10,8 @@ class TestVitBatchNorm(unittest.TestCase):
         x = torch.rand(16, dim, generator=torch.Generator().manual_seed(89543))
         y = bn(x)
         self.assertEqual(x.shape, y.shape)
-        self.assertTrue(torch.allclose(y.mean(dim=0), torch.zeros(size=x.shape[1:]), atol=1e-6))
-        self.assertTrue(torch.allclose(y.std(dim=0), torch.ones(size=x.shape[1:]), atol=1e-1))
+        self.assertTrue(torch.allclose(y.mean(dim=0), torch.zeros(size=(dim,)), atol=1e-6))
+        self.assertTrue(torch.allclose(y.std(dim=0), torch.ones(size=(dim,)), atol=1e-1))
 
     def test_1d(self):
         dim = 4
@@ -19,5 +19,5 @@ class TestVitBatchNorm(unittest.TestCase):
         x = torch.rand(16, 4, dim, generator=torch.Generator().manual_seed(89543))
         y = bn(x)
         self.assertEqual(x.shape, y.shape)
-        self.assertTrue(torch.allclose(y.mean(dim=0), torch.zeros(size=x.shape[1:]), atol=1e-6))
-        self.assertTrue(torch.allclose(y.std(dim=0), torch.ones(size=x.shape[1:]), atol=1e-1))
+        self.assertTrue(torch.allclose(y.mean(dim=[0, 1]), torch.zeros(size=(dim,)), atol=1e-6))
+        self.assertTrue(torch.allclose(y.std(dim=[0, 1]), torch.ones(size=(dim,)), atol=1e-1))
