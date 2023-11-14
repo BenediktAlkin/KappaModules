@@ -10,7 +10,7 @@ class VitBatchNorm(nn.Module):
     def forward(self, x):
         if x.ndim >= 3:
             shape = x.shape
-            x = einops.rearrange(x, "b (...) c -> (b ...) c")
+            x = x.reshape(-1, shape[-1])
             x = self.batchnorm(x)
             x = x.reshape(*shape)
         elif x.ndim == 2:
