@@ -18,11 +18,11 @@ class TestPerceiverAttention(unittest.TestCase):
 
     def test_equal_to_original(self):
         dim = 4
-        seqlen_q = 2
-        seqlen_kv = 3
+        seqlen_q = 3
+        seqlen_kv = 2
         num_heads = 1
         torch.manual_seed(9823)
-        attn_kc = PerceiverAttention1d(dim=dim, num_heads=num_heads, init_weights="torch")
+        attn_kc = PerceiverAttention1d(dim=dim, num_heads=num_heads, bias=False, init_weights="torch")
         torch.manual_seed(9823)
         attn_og = OriginalPerceiverAttention(dim=dim, dim_head=dim // num_heads, heads=num_heads)
         torch.manual_seed(9823)
