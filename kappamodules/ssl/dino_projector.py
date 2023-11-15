@@ -15,7 +15,7 @@ class DinoProjector(nn.Module):
             output_dim=65536,
             fixed_g=True,
             norm_mode="none",
-            init_weights="truncnormal",
+            init_weights="xavier_uniform",
             eps=1e-6,
     ):
         super().__init__()

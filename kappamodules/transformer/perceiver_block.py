@@ -1,0 +1,60 @@
+from torch import nn
+
+from kappamodules.attention import PerceiverAttention1d
+from kappamodules.init import init_norms_as_noaffine
+from kappamodules.layers import DropPath
+from kappamodules.vit import VitMlp
+from functools import partial
+
+class PerceiverBlock(nn.Module):
+    def __init__(
+            self,
+            dim,
+            num_heads,
+            mlp_hidden_dim=None,
+            drop_path=0.,
+            act_ctor=nn.GELU,
+            norm_ctor=nn.LayerNorm,
+            bias=True,
+            eps=1e-6,
+            init_weights="xavier_uniform",
+            init_norms="nonaffine",
+    ):
+        super().__init__()
+        self.init_norms = init_norms
+        mlp_hidden_dim = mlp_hidden_dim or dim * 4
+        self.norm1q = norm_ctor(dim, eps=eps)
+        self.norm1kv = norm_ctor(dim, eps=eps)
+        self.attn = PerceiverAttention1d(dim=dim, num_heads=num_heads, bias=bias, init_weights=init_weights)
+        self.drop_path1 = DropPath(drop_prob=drop_path)
+        self.norm2 = norm_ctor(dim, eps=eps)
+        self.mlp = VitMlp(
+            in_dim=dim,
+            hidden_dim=mlp_hidden_dim,
+            bias=bias,
+            act_ctor=act_ctor,
+            init_weights=init_weights,
+        )
+        self.drop_path2 = DropPath(drop_prob=drop_path)
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        if self.init_norms == "torch":
+            pass
+        elif self.init_norms == "nonaffine":
+            init_norms_as_noaffine(self.norm1q)
+            init_norms_as_noaffine(self.norm1kv)
+            init_norms_as_noaffine(self.norm2)
+        else:
+            raise NotImplementedError
+
+    def _attn_residual_path(self, q, kv):
+        return self.attn(q=self.norm1q(q), kv=self.norm1kv(kv))
+
+    def _mlp_residual_path(self, x):
+        return self.mlp(self.norm2(x))
+
+    def forward(self, q, kv):
+        q = self.drop_path1(q, partial(self._attn_residual_path, kv=kv))
+        q = self.drop_path2(q, self._mlp_residual_path)
+        return q

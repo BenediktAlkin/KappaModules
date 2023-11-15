@@ -11,7 +11,7 @@ from kappamodules.init import (
 
 
 class PerceiverAttention1d(nn.Module):
-    def __init__(self, dim, num_heads=8, init_weights="truncnormal"):
+    def __init__(self, dim, num_heads=8, bias=True, init_weights="truncnormal"):
         super().__init__()
         assert hasattr(F, "scaled_dot_product_attention")
         assert dim % num_heads == 0, "dim should be divisible by num_heads"
@@ -19,9 +19,9 @@ class PerceiverAttention1d(nn.Module):
         self.head_dim = dim // num_heads
         self.init_weights = init_weights
 
-        self.kv = nn.Linear(dim, dim * 2, bias=False)
-        self.q = nn.Linear(dim, dim, bias=False)
-        self.proj = nn.Linear(dim, dim, bias=False)
+        self.kv = nn.Linear(dim, dim * 2, bias=bias)
+        self.q = nn.Linear(dim, dim, bias=bias)
+        self.proj = nn.Linear(dim, dim, bias=bias)
 
         self.reset_parameters()
 
