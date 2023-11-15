@@ -9,8 +9,7 @@ from kappamodules.init import (
     init_truncnormal_zero_bias,
 )
 
-
-class PerceiverAttention1d(nn.Module):
+class PerceiverAttention(nn.Module):
     def __init__(self, dim, num_heads=8, bias=True, init_weights="truncnormal"):
         super().__init__()
         assert hasattr(F, "scaled_dot_product_attention")
@@ -60,3 +59,7 @@ class PerceiverAttention1d(nn.Module):
         x = einops.rearrange(x, "bs num_heads seqlen head_dim -> bs seqlen (num_heads head_dim)")
         x = self.proj(x)
         return x
+
+
+class PerceiverAttention1d(PerceiverAttention):
+    pass
