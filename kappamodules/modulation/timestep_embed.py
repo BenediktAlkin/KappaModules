@@ -1,6 +1,7 @@
 from torch import nn
 
 from kappamodules.functional.pos_embed import get_sincos_1d_from_seqlen
+from kappamodules.init import init_xavier_uniform_zero_bias
 
 
 class TimestepEmbed(nn.Module):
@@ -19,6 +20,11 @@ class TimestepEmbed(nn.Module):
             nn.Linear(hidden_dim, hidden_dim),
             nn.SiLU(),
         )
+        # init
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        self.apply(init_xavier_uniform_zero_bias)
 
     def forward(self, timestep):
         assert timestep.numel() == len(timestep)
