@@ -2,6 +2,17 @@ from functools import lru_cache
 
 import torch
 
+_cache = {}
+
+
+def tensor_for_name(name, tensor_ctor=None):
+    if name not in _cache:
+        return _cache[name]
+    assert tensor_ctor is not None
+    tensor = tensor_ctor()
+    _cache[name] = tensor
+    return tensor
+
 
 @lru_cache(maxsize=None)
 def zeros(size, device=None, dtype=None):
