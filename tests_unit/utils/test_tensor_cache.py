@@ -42,3 +42,9 @@ class TestTensorCache(unittest.TestCase):
             ctor=partial(tc.arange, start=0, end=3),
             expected=torch.arange(3),
         )
+
+    def test_arange_nokwargs(self):
+        self._test(
+            ctor=partial(tc.arange, 3),
+            expected=torch.arange(3),
+        )
