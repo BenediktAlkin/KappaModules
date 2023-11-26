@@ -47,6 +47,6 @@ def full(size, fill_value, device=None, dtype=None):
 
 def arange(start, end=None, step=1, device=None, dtype=None):
     return _wrapper(
-        key=("full", start, end, step, str(device), dtype),
+        key=("arange", start, end, step, str(device), dtype),
         ctor=partial(torch.arange, start=start, end=end, step=step, device=device, dtype=dtype),
     )
