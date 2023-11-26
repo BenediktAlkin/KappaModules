@@ -1,36 +1,52 @@
-from functools import lru_cache
+from functools import partial
 
 import torch
 
 _cache = {}
 
 
-def tensor_for_name(name, tensor_ctor=None):
-    if name not in _cache:
-        return _cache[name]
-    assert tensor_ctor is not None
-    tensor = tensor_ctor()
-    _cache[name] = tensor
+def _wrapper(key, ctor=None):
+    if key in _cache:
+        tensor = _cache[key]
+        # noinspection PyProtectedMember
+        assert tensor._version == 0, f"cached tensor with key={key} was modified inplace"
+        return tensor
+    assert ctor is not None
+    tensor = ctor()
+    _cache[key] = tensor
     return tensor
 
 
-@lru_cache(maxsize=None)
+def named(name, ctor=None):
+    # force string to avoid any possibility of named overwriting other attributes in the cache
+    # e.g. by passing ("zeros", (5,), "cpu", torch.bool) as name it would overwrite a cached zeros tensor
+    assert isinstance(name, str)
+    return _wrapper(key=name, ctor=ctor)
+
+
 def zeros(size, device=None, dtype=None):
-    return torch.zeros(size, device=device, dtype=dtype)
+    return _wrapper(
+        key=("zeros", size, str(device), dtype),
+        ctor=partial(torch.zeros, size=size, device=device, dtype=dtype),
+    )
 
 
-@lru_cache(maxsize=None)
 def ones(size, device=None, dtype=None):
-    return torch.ones(size, device=device, dtype=dtype)
+    return _wrapper(
+        key=("ones", size, str(device), dtype),
+        ctor=partial(torch.ones, size=size, device=device, dtype=dtype),
+    )
 
 
-@lru_cache(maxsize=None)
 def full(size, fill_value, device=None, dtype=None):
-    return torch.full(size=size, fill_value=fill_value, device=device, dtype=dtype)
+    return _wrapper(
+        key=("full", size, fill_value, str(device), dtype),
+        ctor=partial(torch.full, size=size, fill_value=fill_value, device=device, dtype=dtype),
+    )
 
 
-@lru_cache(maxsize=None)
-def arange(start, end=None, step=1, dtype=None, device=None):
-    if end is None:
-        return torch.arange(start, dtype=dtype, device=device)
-    return torch.arange(start, end, step, dtype=dtype, device=device)
+def arange(start, end=None, step=1, device=None, dtype=None):
+    return _wrapper(
+        key=("full", start, end, step, str(device), dtype),
+        ctor=partial(torch.arange, start=start, end=end, step=step, device=device, dtype=dtype),
+    )
