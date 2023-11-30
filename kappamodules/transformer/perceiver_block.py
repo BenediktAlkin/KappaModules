@@ -1,10 +1,12 @@
+from functools import partial
+
 from torch import nn
 
 from kappamodules.attention import PerceiverAttention1d
 from kappamodules.init import init_norms_as_noaffine
 from kappamodules.layers import DropPath
-from kappamodules.vit import VitMlp
-from functools import partial
+from .mlp import Mlp
+
 
 class PerceiverBlock(nn.Module):
     def __init__(
@@ -28,7 +30,7 @@ class PerceiverBlock(nn.Module):
         self.attn = PerceiverAttention1d(dim=dim, num_heads=num_heads, bias=bias, init_weights=init_weights)
         self.drop_path1 = DropPath(drop_prob=drop_path)
         self.norm2 = norm_ctor(dim, eps=eps)
-        self.mlp = VitMlp(
+        self.mlp = Mlp(
             in_dim=dim,
             hidden_dim=mlp_hidden_dim,
             bias=bias,
