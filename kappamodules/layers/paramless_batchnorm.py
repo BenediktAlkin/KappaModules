@@ -2,7 +2,10 @@ from torch import nn
 
 
 class ParamlessBatchNorm1d(nn.Module):
-    """ non-affine BatchNorm1d layer that doesn't need a dimension but also can't be used in eval mode """
+    """
+    non-affine BatchNorm1d layer that doesn't need a dimension but also can't be used in eval mode
+    this layer works with SyncBatchnorm
+    """
 
     def __init__(self):
         super().__init__()
