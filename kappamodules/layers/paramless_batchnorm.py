@@ -7,10 +7,15 @@ class ParamlessBatchNorm1d(nn.Module):
     this layer works with SyncBatchnorm
     """
 
-    def __init__(self):
+    def __init__(self, num_features=None):
         super().__init__()
-        self.norm = nn.BatchNorm1d(num_features=None, affine=False, track_running_stats=False)
+        self.norm = nn.BatchNorm1d(
+            num_features=num_features,
+            affine=False,
+            track_running_stats=num_features is not None,
+        )
 
     def forward(self, x):
-        assert self.training
+        if not self.norm.track_running_stats:
+            assert self.training
         return self.norm(x)
