@@ -1,7 +1,7 @@
 from torch import nn
 
 
-class ParamlessBatchnorm1d(nn.BatchNorm1d):
+class ParamlessBatchNorm1d(nn.BatchNorm1d):
     """ non-affine BatchNorm1d layer that doesn't need a dimension but also can't be used in eval mode """
 
     def __init__(self):
