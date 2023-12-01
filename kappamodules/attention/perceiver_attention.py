@@ -10,12 +10,13 @@ from kappamodules.init import (
 )
 
 class PerceiverAttention(nn.Module):
-    def __init__(self, dim, num_heads=8, bias=True, init_weights="truncnormal"):
+    def __init__(self, dim, num_heads=8, bias=True, concat_query_to_kv=False, init_weights="truncnormal"):
         super().__init__()
         assert hasattr(F, "scaled_dot_product_attention")
         assert dim % num_heads == 0, "dim should be divisible by num_heads"
         self.num_heads = num_heads
         self.head_dim = dim // num_heads
+        self.concat_query_to_kv = concat_query_to_kv
         self.init_weights = init_weights
 
         self.kv = nn.Linear(dim, dim * 2, bias=bias)
@@ -37,7 +38,9 @@ class PerceiverAttention(nn.Module):
 
     def forward(self, q, kv):
         # project to attention space
-        kv = self.kv(torch.concat([kv, q], dim=1))
+        if self.concat_query_to_kv:
+            kv = torch.concat([kv, q], dim=1)
+        kv = self.kv(kv)
         q = self.q(q)
 
         # split per head
