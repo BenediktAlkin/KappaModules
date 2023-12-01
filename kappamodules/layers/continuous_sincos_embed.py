@@ -3,7 +3,7 @@ import torch
 from kappamodules.functional.pos_embed import get_sincos_1d_from_grid
 import einops
 
-class ContinuousPosEmbed(nn.Module):
+class ContinuousSincosEmbed(nn.Module):
     def __init__(self, dim, ndim, max_wavelength: int = 10000, dtype=torch.double, output_dtype=torch.float32):
         super().__init__()
         assert dim % ndim == 0

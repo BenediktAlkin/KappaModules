@@ -1,4 +1,4 @@
-from .continuous_pos_embed import ContinuousPosEmbed
+from .continuous_sincos_embed import ContinuousSincosEmbed
 from .drop_path import DropPath
 from .identity import Identity
 from .normalize import Normalize
