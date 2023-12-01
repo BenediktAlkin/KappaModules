@@ -22,7 +22,13 @@ class TestPerceiverAttention(unittest.TestCase):
         seqlen_kv = 2
         num_heads = 1
         torch.manual_seed(9823)
-        attn_kc = PerceiverAttention1d(dim=dim, num_heads=num_heads, bias=False, init_weights="torch")
+        attn_kc = PerceiverAttention1d(
+            dim=dim,
+            num_heads=num_heads,
+            bias=False,
+            init_weights="torch",
+            concat_query_to_kv=True,
+        )
         torch.manual_seed(9823)
         attn_og = OriginalPerceiverAttention(dim=dim, dim_head=dim // num_heads, heads=num_heads)
         torch.manual_seed(9823)

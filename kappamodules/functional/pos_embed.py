@@ -3,19 +3,19 @@ import torch
 import torch.nn.functional as F
 
 
-def get_sincos_1d_from_seqlen(seqlen: int, dim: int):
+def get_sincos_1d_from_seqlen(seqlen: int, dim: int, period: int = 10000):
     grid = torch.arange(seqlen, dtype=torch.double)
-    return get_sincos_1d_from_grid(grid=grid, dim=dim)
+    return get_sincos_1d_from_grid(grid=grid, dim=dim, period=period)
 
 
-def get_sincos_1d_from_grid(grid, dim: int):
+def get_sincos_1d_from_grid(grid, dim: int, period: int = 10000):
     if dim % 2 == 0:
         padding = None
     else:
         padding = torch.zeros(*grid.shape, 1)
         dim -= 1
     # generate frequencies for sin/cos (e.g. dim=8 -> omega = [1.0, 0.1, 0.01, 0.001])
-    omega = 1. / 10000 ** (torch.arange(0, dim, 2, dtype=torch.double) / dim)
+    omega = 1. / period ** (torch.arange(0, dim, 2, dtype=torch.double) / dim)
     # create grid of frequencies with timesteps
     # Example seqlen=5 dim=8
     # [0, 0.0, 0.00, 0.000]
@@ -34,52 +34,52 @@ def get_sincos_1d_from_grid(grid, dim: int):
         return torch.concat([emb, padding], dim=-1)
 
 
-def get_sincos_2d_from_seqlens(seqlens, dim: int):
+def get_sincos_2d_from_seqlens(seqlens, dim: int, period: int = 10000):
     seqlen_h, seqlen_w = seqlens
     grid_h = torch.arange(seqlen_h, dtype=torch.double)
     grid_w = torch.arange(seqlen_w, dtype=torch.double)
     grid = torch.meshgrid(grid_h, grid_w, indexing="xy")
     grid = torch.stack(grid).reshape(2, seqlen_h, seqlen_w)
-    return get_2d_sincos_pos_embed_from_grid(grid=grid, dim=dim)
+    return get_2d_sincos_pos_embed_from_grid(grid=grid, dim=dim, period=period)
 
 
-def get_2d_sincos_pos_embed_from_grid(grid, dim: int):
+def get_2d_sincos_pos_embed_from_grid(grid, dim: int, period: int = 10000):
     assert dim % 2 == 0
     grid_h, grid_w = grid
-    emb_h = get_sincos_1d_from_grid(grid=grid_h, dim=dim // 2)
-    emb_w = get_sincos_1d_from_grid(grid=grid_w, dim=dim // 2)
+    emb_h = get_sincos_1d_from_grid(grid=grid_h, dim=dim // 2, period=period)
+    emb_w = get_sincos_1d_from_grid(grid=grid_w, dim=dim // 2, period=period)
     return torch.concat([emb_h, emb_w], dim=-1)
 
 
-def get_sincos_3d_from_seqlens(seqlens, dim: int):
+def get_sincos_3d_from_seqlens(seqlens, dim: int, period: int = 10000):
     seqlen_x, seqlen_y, seqlen_z = seqlens
     grid_x = torch.arange(seqlen_x, dtype=torch.double)
     grid_y = torch.arange(seqlen_y, dtype=torch.double)
     grid_z = torch.arange(seqlen_z, dtype=torch.double)
     grid = torch.meshgrid(grid_x, grid_y, grid_z, indexing="xy")
     grid = torch.stack(grid).reshape(3, seqlen_x, seqlen_y, seqlen_z)
-    return get_3d_sincos_pos_embed_from_grid(grid=grid, dim=dim)
+    return get_3d_sincos_pos_embed_from_grid(grid=grid, dim=dim, period=period)
 
 
-def get_3d_sincos_pos_embed_from_grid(grid, dim: int):
+def get_3d_sincos_pos_embed_from_grid(grid, dim: int, period: int = 10000):
     assert dim % 3 == 0
     grid_x, grid_y, grid_z = grid
-    emb_x = get_sincos_1d_from_grid(grid=grid_x, dim=dim // 3)
-    emb_y = get_sincos_1d_from_grid(grid=grid_y, dim=dim // 3)
-    emb_z = get_sincos_1d_from_grid(grid=grid_z, dim=dim // 3)
+    emb_x = get_sincos_1d_from_grid(grid=grid_x, dim=dim // 3, period=period)
+    emb_y = get_sincos_1d_from_grid(grid=grid_y, dim=dim // 3, period=period)
+    emb_z = get_sincos_1d_from_grid(grid=grid_z, dim=dim // 3, period=period)
     return torch.concat([emb_x, emb_y, emb_z], dim=-1)
 
 
-def get_sincos_pos_embed_from_seqlens(seqlens, dim: int):
+def get_sincos_pos_embed_from_seqlens(seqlens, dim: int, period: int = 10000):
     assert isinstance(seqlens, (tuple, list))
     ndim = len(seqlens)
     grids = [torch.arange(seqlen, dtype=torch.double) for seqlen in seqlens]
     grid = torch.meshgrid(*grids, indexing="xy")
     grid = torch.stack(grid).reshape(ndim, *seqlens)
-    return get_sincos_pos_embed_from_grid(grid=grid, dim=dim)
+    return get_sincos_pos_embed_from_grid(grid=grid, dim=dim, period=period)
 
 
-def get_sincos_pos_embed_from_grid(grid, dim: int):
+def get_sincos_pos_embed_from_grid(grid, dim: int, period: int = 10000):
     ndim = grid.size(0)
     if dim % ndim == 0:
         padding = None
@@ -87,7 +87,13 @@ def get_sincos_pos_embed_from_grid(grid, dim: int):
         padding_dim = dim % ndim
         padding = torch.zeros(*grid.shape[1:], padding_dim)
         dim -= padding_dim
-    pos_embed = torch.concat([get_sincos_1d_from_grid(grid=grid[i], dim=dim // ndim) for i in range(ndim)], dim=-1)
+    pos_embed = torch.concat(
+        [
+            get_sincos_1d_from_grid(grid=grid[i], dim=dim // ndim, period=period)
+            for i in range(ndim)
+        ],
+        dim=-1,
+    )
     if padding is None:
         return pos_embed
     else:
