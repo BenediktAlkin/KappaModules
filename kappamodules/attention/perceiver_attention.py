@@ -36,7 +36,7 @@ class PerceiverAttention(nn.Module):
         else:
             raise NotImplementedError
 
-    def forward(self, q, kv):
+    def forward(self, q, kv, attn_mask=None):
         # project to attention space
         if self.concat_query_to_kv:
             kv = torch.concat([kv, q], dim=1)
@@ -58,7 +58,7 @@ class PerceiverAttention(nn.Module):
             head_dim=self.head_dim,
         ).unbind(0)
 
-        x = F.scaled_dot_product_attention(q, k, v)
+        x = F.scaled_dot_product_attention(q, k, v, attn_mask=attn_mask)
         x = einops.rearrange(x, "bs num_heads seqlen head_dim -> bs seqlen (num_heads head_dim)")
         x = self.proj(x)
         return x

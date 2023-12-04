@@ -16,6 +16,18 @@ class TestPerceiverAttention(unittest.TestCase):
         y = attn(q=q, kv=kv)
         self.assertEqual(q.shape, y.shape)
 
+    def test_shape_masked(self):
+        torch.manual_seed(9823)
+        dim = 24
+        seqlen_q = 6
+        seqlen_kv = 7
+        attn = PerceiverAttention1d(dim=dim, num_heads=4)
+        q = torch.randn(1, seqlen_q, dim)
+        kv = torch.randn(1, seqlen_kv, dim)
+        attn_mask = torch.rand(1, seqlen_q, seqlen_kv) > 0.5
+        y = attn(q=q, kv=kv, attn_mask=attn_mask)
+        self.assertEqual(q.shape, y.shape)
+
     def test_equal_to_original(self):
         dim = 4
         seqlen_q = 3
