@@ -57,13 +57,13 @@ class PerceiverBlock(nn.Module):
         else:
             raise NotImplementedError
 
-    def _attn_residual_path(self, q, kv):
-        return self.attn(q=self.norm1q(q), kv=self.norm1kv(kv))
+    def _attn_residual_path(self, q, kv, attn_mask):
+        return self.attn(q=self.norm1q(q), kv=self.norm1kv(kv), attn_mask=attn_mask)
 
     def _mlp_residual_path(self, x):
         return self.mlp(self.norm2(x))
 
-    def forward(self, q, kv):
-        q = self.drop_path1(q, partial(self._attn_residual_path, kv=kv))
+    def forward(self, q, kv, attn_mask=None):
+        q = self.drop_path1(q, partial(self._attn_residual_path, kv=kv, attn_mask=attn_mask))
         q = self.drop_path2(q, self._mlp_residual_path)
         return q
