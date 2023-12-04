@@ -19,9 +19,14 @@ class ContinuousSincosEmbed(nn.Module):
         )
 
     def forward(self, coords):
-        _, _, ndim = coords.shape
+        ndim = coords.shape[-1]
         assert self.ndim == ndim
         out = coords.unsqueeze(-1).to(self.dtype) @ self.omega.unsqueeze(0)
         emb = torch.concat([torch.sin(out), torch.cos(out)], dim=-1)
-        emb = einops.rearrange(emb, "bs num_points ndim dim -> bs num_points (ndim dim)")
+        if coords.ndim == 3:
+            emb = einops.rearrange(emb, "bs num_points ndim dim -> bs num_points (ndim dim)")
+        elif coords.ndim == 2:
+            emb = einops.rearrange(emb, "bs_times_num_points ndim dim -> bs_times_num_points (ndim dim)")
+        else:
+            raise NotImplementedError
         return emb.to(self.output_dtype)

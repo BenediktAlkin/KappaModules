@@ -8,7 +8,13 @@ class TestContinuousSincosEmbed(unittest.TestCase):
         num_points = 32
         ndim = 2
         dim = 16
-        coords = torch.rand(batch_size, num_points, ndim, generator=torch.Generator().manual_seed(8943))
+        # dense
+        dense_coords = torch.rand(batch_size, num_points, ndim, generator=torch.Generator().manual_seed(8943))
         embed = ContinuousSincosEmbed(dim=dim, ndim=ndim)
-        result = embed(coords)
-        self.assertEqual((batch_size, num_points, dim), result.shape)
+        dense_result = embed(dense_coords)
+        self.assertEqual((batch_size, num_points, dim), dense_result.shape)
+        # sparse
+        sparse_coords = torch.rand(batch_size * num_points, ndim, generator=torch.Generator().manual_seed(8943))
+        embed = ContinuousSincosEmbed(dim=dim, ndim=ndim)
+        sparse_result = embed(sparse_coords)
+        self.assertEqual((batch_size * num_points, dim), sparse_result.shape)
