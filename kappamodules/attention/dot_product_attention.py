@@ -34,7 +34,7 @@ class DotProductAttention(nn.Module):
         else:
             raise NotImplementedError
 
-    def _forward(self, x):
+    def _forward(self, x, attn_mask=None):
         q, k, v = einops.rearrange(
             self.qkv(x),
             "bs seqlen (three num_heads head_dim) -> three bs num_heads seqlen head_dim",
@@ -42,7 +42,7 @@ class DotProductAttention(nn.Module):
             num_heads=self.num_heads,
             head_dim=self.head_dim,
         ).unbind(0)
-        x = F.scaled_dot_product_attention(q, k, v)
+        x = F.scaled_dot_product_attention(q, k, v, attn_mask=attn_mask)
         x = einops.rearrange(x, "bs num_heads seqlen head_dim -> bs seqlen (num_heads head_dim)")
         x = self.proj(x)
         return x
@@ -52,12 +52,12 @@ class DotProductAttention(nn.Module):
 
 
 class DotProductAttention1d(DotProductAttention):
-    def forward(self, x):
+    def forward(self, x, attn_mask=None):
         return self._forward(x)
 
 
 class DotProductAttention2d(DotProductAttention):
-    def forward(self, x):
+    def forward(self, x, attn_mask=None):
         _, _, h, w = x.shape
         x = einops.rearrange(x, "b c h w -> b (h w) c")
         x = self._forward(x)
@@ -66,7 +66,7 @@ class DotProductAttention2d(DotProductAttention):
 
 
 class DotProductAttention3d(DotProductAttention):
-    def forward(self, x):
+    def forward(self, x, attn_mask=None):
         _, _, h, w, d = x.shape
         x = einops.rearrange(x, "b c h w d -> b (h w d) c")
         x = self._forward(x)

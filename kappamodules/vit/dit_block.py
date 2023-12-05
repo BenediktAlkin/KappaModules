@@ -57,14 +57,25 @@ class DitBlock(nn.Module):
         else:
             raise NotImplementedError
 
-    def _attn_residual_path(self, x, scale, shift, gate):
-        return modulate_gate(self.attn(modulate_scale_shift(self.norm1(x), scale=scale, shift=shift)), gate=gate)
+    def _attn_residual_path(self, x, scale, shift, gate, attn_mask):
+        x = modulate_scale_shift(self.norm1(x), scale=scale, shift=shift)
+        x = self.attn(x, attn_mask=attn_mask)
+        return modulate_gate(x, gate=gate)
 
     def _mlp_residual_path(self, x, scale, shift, gate):
         return modulate_gate(self.mlp(modulate_scale_shift(self.norm2(x), scale=scale, shift=shift)), gate=gate)
 
-    def forward(self, x, cond):
+    def forward(self, x, cond, attn_mask=None):
         scale1, shift1, gate1, scale2, shift2, gate2 = self.modulation(cond)
-        x = self.drop_path1(x, partial(self._attn_residual_path, scale=scale1, shift=shift1, gate=gate1))
+        x = self.drop_path1(
+            x,
+            partial(
+                self._attn_residual_path,
+                scale=scale1,
+                shift=shift1,
+                gate=gate1,
+                attn_mask=attn_mask,
+            )
+        )
         x = self.drop_path2(x, partial(self._mlp_residual_path, scale=scale2, shift=shift2, gate=gate2))
         return x
