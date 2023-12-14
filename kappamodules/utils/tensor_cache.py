@@ -30,6 +30,8 @@ def zeros(size, device=None, dtype=None):
         ctor=partial(torch.zeros, size=size, device=device, dtype=dtype),
     )
 
+def zeros_like(tensor):
+    return zeros(size=tensor.shape, device=tensor.device, dtype=tensor.dtype)
 
 def ones(size, device=None, dtype=None):
     return _wrapper(
@@ -37,12 +39,18 @@ def ones(size, device=None, dtype=None):
         ctor=partial(torch.ones, size=size, device=device, dtype=dtype),
     )
 
+def ones_like(tensor):
+    return ones(size=tensor.shape, device=tensor.device, dtype=tensor.dtype)
+
 
 def full(size, fill_value, device=None, dtype=None):
     return _wrapper(
         key=("full", size, fill_value, str(device), dtype),
         ctor=partial(torch.full, size=size, fill_value=fill_value, device=device, dtype=dtype),
     )
+
+def full_like(tensor, fill_value):
+    return full(size=tensor.shape, fill_value=fill_value, device=tensor.device, dtype=tensor.dtype)
 
 
 def arange(start, end=None, step=1, device=None, dtype=None):
