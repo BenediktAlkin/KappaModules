@@ -33,4 +33,3 @@ class RegularGridSincosEmbed(nn.Module):
         else:
             embed = self.embed
         return embed
-
