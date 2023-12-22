@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 
-from kappamodules.functional.pos_embed import get_sincos_pos_embed_from_seqlens, interpolate_sincos
+from kappamodules.functional.pos_embed import get_sincos_pos_embed_from_seqlens
 
 
 class RegularGridSincosEmbed(nn.Module):
