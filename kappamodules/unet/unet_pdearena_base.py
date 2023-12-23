@@ -87,7 +87,7 @@ class UnetPdearenaBase(nn.Module):
         x2 = self.down[1](x1)
         x3 = self.down[2](x2)
         x4 = self.down[3](x3)
-        
+
         x = self.up[0](x4, x3)
         x = self.up[1](x, x2)
         x = self.up[2](x, x1)
