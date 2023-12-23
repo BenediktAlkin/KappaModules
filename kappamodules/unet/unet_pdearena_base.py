@@ -5,9 +5,7 @@ from torch import nn
 class ConvBlock(nn.Module):
     def __init__(self, in_channels, out_channels, num_groups=1, norm: bool = True, activation=nn.GELU) -> None:
         super().__init__()
-        self.activation = activation
-        if self.activation is None:
-            raise NotImplementedError(f"Activation {activation} not implemented")
+        self.activation = activation()
 
         self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1)
         self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1)
@@ -56,10 +54,11 @@ class UnetPdearenaBase(nn.Module):
     https://github.com/microsoft/pdearena/blob/main/pdearena/modules/twod_unetbase.py
     """
 
-    def __init__(self, input_dim, hidden_dim):
+    def __init__(self, input_dim, hidden_dim, output_dim):
         super().__init__()
         self.input_dim = input_dim
         self.hidden_dim = hidden_dim
+        self.output_dim = output_dim
 
         self.image_proj = ConvBlock(input_dim, hidden_dim)
         self.down = nn.ModuleList(
@@ -78,26 +77,21 @@ class UnetPdearenaBase(nn.Module):
                 Up(hidden_dim * 2, hidden_dim),
             ]
         )
-        out_channels = time_future * (self.n_output_scalar_components + self.n_output_vector_components * 2)
         # should there be a final norm too? but we aren't doing "prenorm" in the original
-        self.final = nn.Conv2d(hidden_dim, out_channels, kernel_size=(3, 3), padding=(1, 1))
+        self.final = nn.Conv2d(hidden_dim, output_dim, kernel_size=(3, 3), padding=(1, 1))
 
     def forward(self, x):
-        assert x.dim() == 5
-        orig_shape = x.shape
-        x = x.reshape(x.size(0), -1, *x.shape[3:])
         h = self.image_proj(x)
 
         x1 = self.down[0](h)
         x2 = self.down[1](x1)
         x3 = self.down[2](x2)
         x4 = self.down[3](x3)
+        
         x = self.up[0](x4, x3)
         x = self.up[1](x, x2)
         x = self.up[2](x, x1)
         x = self.up[3](x, h)
 
         x = self.final(x)
-        return x.reshape(
-            orig_shape[0], -1, (self.n_output_scalar_components + self.n_output_vector_components * 2), *orig_shape[3:]
-        )
+        return x
