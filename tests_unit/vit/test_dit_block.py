@@ -16,8 +16,8 @@ class TestDitBlock(unittest.TestCase):
 
         x = torch.randn(2, 6, dim, generator=torch.Generator().manual_seed(9834))
         cond = torch.randn(2, dim, generator=torch.Generator().manual_seed(564))
-        y = block(x, cond)
-        y_og = block_og(x, cond)
+        y = block(x, cond=cond)
+        y_og = block_og(x, c=cond)
         self.assertEqual(x.shape, y.shape)
         self.assertTrue(torch.allclose(y_og, y))
 
@@ -27,6 +27,6 @@ class TestDitBlock(unittest.TestCase):
         block = DitBlock(dim=dim, num_heads=2, init_weights="torch")
         x = torch.randn(2, 6, dim, generator=torch.Generator().manual_seed(9834))
         cond = torch.randn(2, dim, generator=torch.Generator().manual_seed(564))
-        mask = torch.randn(2, 6, generator=torch.Generator().manual_seed(324514)) > 0
-        y = block(x, cond, attn_mask=mask)
+        mask = torch.randn(2, 6, 6, generator=torch.Generator().manual_seed(324514)) > 0
+        y = block(x, cond=cond, attn_mask=mask)
         self.assertEqual(x.shape, y.shape)
