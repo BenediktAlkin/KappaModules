@@ -4,25 +4,22 @@ from torch import nn
 
 from kappamodules.utils.shapes import to_ndim
 
+from kappamodules.init import init_xavier_uniform_merged_linear
 
 class Film(nn.Module):
-    def __init__(self, cond_dim, out_dim, init_weights="xavier_uniform"):
+    def __init__(self, dim_cond, dim_out, init_weights="xavier_uniform"):
         super().__init__()
-        self.in_dim = cond_dim
-        self.out_dim = out_dim
-        self.modulation = nn.Linear(cond_dim, out_dim)
+        self.dim_cond = dim_cond
+        self.dim_out = dim_out
+        self.modulation = nn.Linear(dim_cond, dim_out * 2)
         self.init_weights = init_weights
         self.reset_parameters()
 
     def reset_parameters(self):
-        fan_in = self.modulation.weight.shape[1]
-        assert self.modulation.weight.shape[0] % 2 == 0
-        fan_out = self.modulation.weight.shape[0] // 2
         if self.init_weights == "torch":
             pass
         elif self.init_weights == "xavier_uniform":
-            val = math.sqrt(6 / (fan_out + fan_in))
-            nn.init.uniform_(self.modulation.weight, -val, val)
+            init_xavier_uniform_merged_linear(self.modulation, num_layers=2)
             nn.init.zeros_(self.modulation.bias)
         else:
             raise NotImplementedError
