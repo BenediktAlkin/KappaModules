@@ -25,5 +25,5 @@ class Film(nn.Module):
             raise NotImplementedError
 
     def forward(self, x, cond):
-        scale, shift = self.modulation(to_ndim(cond, ndim=x.ndim)).chunk(2, dim=1)
+        scale, shift = to_ndim(self.modulation(cond), ndim=x.ndim).chunk(2, dim=1)
         return x * (scale + 1) + shift
