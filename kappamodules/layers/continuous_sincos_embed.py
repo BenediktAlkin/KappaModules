@@ -37,3 +37,9 @@ class ContinuousSincosEmbed(nn.Module):
             padding = torch.zeros(*emb.shape[:-1], self.padding, device=emb.device, dtype=emb.dtype)
             emb = torch.concat([emb, padding], dim=-1)
         return emb
+
+    def __str__(self):
+        return repr(self)
+
+    def __repr__(self):
+        return f"{type(self).__name__}(dim={self.dim})"
