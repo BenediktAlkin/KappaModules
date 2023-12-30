@@ -70,12 +70,12 @@ def get_3d_sincos_pos_embed_from_grid(grid, dim: int, max_wavelength: int = 1000
     return torch.concat([emb_x, emb_y, emb_z], dim=-1)
 
 
-def get_sincos_pos_embed_from_seqlens(seqlens, dim: int, max_wavelength: int = 10000):
+def get_sincos_pos_embed_from_seqlens(seqlens, dim: int, max_wavelength: int = 10000, indexing="ij"):
     assert isinstance(seqlens, (tuple, list))
-    ndim = len(seqlens)
     grids = [torch.arange(seqlen, dtype=torch.double) for seqlen in seqlens]
-    grid = torch.meshgrid(*grids, indexing="xy")
-    grid = torch.stack(grid).reshape(ndim, *seqlens)
+    if indexing == "xy":
+        grids = reversed(grids)
+    grid = torch.stack(torch.meshgrid(*grids, indexing=indexing))
     return get_sincos_pos_embed_from_grid(grid=grid, dim=dim, max_wavelength=max_wavelength)
 
 

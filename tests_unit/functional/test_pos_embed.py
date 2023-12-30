@@ -1,6 +1,8 @@
+import einops
 import torch
 import unittest
 from kappamodules.functional.pos_embed import get_sincos_pos_embed_from_seqlens
+from original_modules.mae_pos_embed import get_2d_sincos_pos_embed
 
 class TestPosEmbed(unittest.TestCase):
     def test_shapes(self):
@@ -30,3 +32,21 @@ class TestPosEmbed(unittest.TestCase):
         self.assertTrue(torch.all(pos_embed_padded[:, :, :, -1] == 0))
         self.assertTrue(torch.all(pos_embed_padded[:, :, :, -2] == 0))
         self.assertTrue(torch.all(pos_embed_padded[:, :, :, :-2] == pos_embed_unpadded))
+
+    def test_equals_mae_square_xy(self):
+        pos_embed_og = torch.from_numpy(get_2d_sincos_pos_embed(embed_dim=16, grid_size=4))
+        pos_embed_og = pos_embed_og.reshape(4, 4, 16).float()
+        pos_embed = get_sincos_pos_embed_from_seqlens(seqlens=(4, 4), dim=16, indexing="xy")
+        self.assertTrue(torch.all(pos_embed == pos_embed_og))
+
+    def test_equals_mae_square_ij(self):
+        pos_embed_og = torch.from_numpy(get_2d_sincos_pos_embed(embed_dim=16, grid_size=4))
+        pos_embed_og = einops.rearrange(pos_embed_og, "(width height) dim -> height width dim", width=4).float()
+        pos_embed = get_sincos_pos_embed_from_seqlens(seqlens=(4, 4), dim=16, indexing="ij")
+        self.assertTrue(torch.all(pos_embed == pos_embed_og))
+
+    def test_equals_mae_rect_xy(self):
+        pos_embed_og = torch.from_numpy(get_2d_sincos_pos_embed(embed_dim=16, grid_size=(3, 4)))
+        pos_embed_og = pos_embed_og.reshape(3, 4, 16).float()
+        pos_embed = get_sincos_pos_embed_from_seqlens(seqlens=(3, 4), dim=16, indexing="xy")
+        self.assertTrue(torch.all(pos_embed == pos_embed_og))
