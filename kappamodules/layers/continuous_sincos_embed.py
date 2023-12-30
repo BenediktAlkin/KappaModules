@@ -6,11 +6,11 @@ from torch import nn
 class ContinuousSincosEmbed(nn.Module):
     def __init__(self, dim, ndim, max_wavelength: int = 10000):
         super().__init__()
-        assert dim % ndim == 0
-        self.dim = dim
+        self.padding = dim % ndim
+        self.dim = dim - self.padding
         self.ndim = ndim
         self.max_wavelength = max_wavelength
-        dim_div_ndim = dim // ndim
+        dim_div_ndim = self.dim // ndim
         self.register_buffer(
             "omega",
             1. / max_wavelength ** (torch.arange(0, dim_div_ndim, 2, dtype=torch.float32) / dim_div_ndim),

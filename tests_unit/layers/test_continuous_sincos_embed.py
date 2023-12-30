@@ -25,3 +25,10 @@ class TestContinuousSincosEmbed(unittest.TestCase):
         embed = ContinuousSincosEmbed(dim=16, ndim=ndim)
         result = embed(coords.double())
         self.assertEqual(torch.double, result.dtype)
+
+    def test_padding(self):
+        ndim = 2
+        coords = torch.rand(3, 32, ndim, generator=torch.Generator().manual_seed(8943))
+        embed = ContinuousSincosEmbed(dim=15, ndim=ndim)
+        result = embed(coords)
+        self.assertEqual(torch.double, result.dtype)
