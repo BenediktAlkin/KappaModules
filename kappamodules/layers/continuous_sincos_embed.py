@@ -15,6 +15,7 @@ class ContinuousSincosEmbed(nn.Module):
         self.max_wavelength = max_wavelength
         self.padding = self.ndim_padding + self.sincos_padding * 2
         effective_dim_per_wave = (self.dim - self.padding) // ndim
+        assert effective_dim_per_wave > 0
         self.register_buffer(
             "omega",
             1. / max_wavelength ** (torch.arange(0, effective_dim_per_wave, 2, dtype=dtype) / effective_dim_per_wave),
