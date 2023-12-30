@@ -34,6 +34,7 @@ class VitPosEmbed(nn.Module):
             embed = self.embed
         return x + embed
 
+
 # LEGACY remove
 class VitPosEmbedNd(VitPosEmbed):
     pass

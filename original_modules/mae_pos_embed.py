@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def get_2d_sincos_pos_embed(embed_dim, grid_size):
     if isinstance(grid_size, int):
         grid_size = (grid_size, grid_size)

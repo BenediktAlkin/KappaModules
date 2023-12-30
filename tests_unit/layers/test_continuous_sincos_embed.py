@@ -2,8 +2,10 @@ import unittest
 
 import einops
 import torch
-from kappamodules.layers import ContinuousSincosEmbed
+
 from kappamodules.functional.pos_embed import get_sincos_pos_embed_from_seqlens
+from kappamodules.layers import ContinuousSincosEmbed
+
 
 class TestContinuousSincosEmbed(unittest.TestCase):
     def test_shape(self):

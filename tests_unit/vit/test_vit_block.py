@@ -4,6 +4,7 @@ import torch
 
 from kappamodules.vit import VitBlock
 
+
 class TestVitBlock(unittest.TestCase):
     def test(self):
         dim = 4

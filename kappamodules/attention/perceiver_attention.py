@@ -9,6 +9,7 @@ from kappamodules.init import (
     init_truncnormal_zero_bias,
 )
 
+
 class PerceiverAttention(nn.Module):
     def __init__(self, dim, num_heads=8, bias=True, concat_query_to_kv=False, init_weights="truncnormal"):
         super().__init__()

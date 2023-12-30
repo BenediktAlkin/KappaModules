@@ -5,6 +5,7 @@ import torch
 from kappamodules.vit import DitBlock
 from original_modules.original_dit_block import OriginalDitBlock
 
+
 class TestDitBlock(unittest.TestCase):
     def test_equal_to_original(self):
         dim = 12

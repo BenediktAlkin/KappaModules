@@ -1,8 +1,10 @@
 import unittest
 
+import torch
+
 from kappamodules.attention import PerceiverAttention1d
 from original_modules.original_perceiver_attention import OriginalPerceiverAttention
-import torch
+
 
 class TestPerceiverAttention(unittest.TestCase):
     def test_shape(self):
@@ -51,4 +53,3 @@ class TestPerceiverAttention(unittest.TestCase):
         self.assertEqual(q.shape, y_og.shape)
         self.assertEqual(y_kc.shape, y_og.shape)
         self.assertTrue(torch.allclose(y_kc, y_og))
-

@@ -1,6 +1,7 @@
+import einops
 import torch
 from torch import nn
-import einops
+
 
 class OriginalPerceiverAttention(nn.Module):
     """
@@ -13,7 +14,7 @@ class OriginalPerceiverAttention(nn.Module):
 
     def __init__(self, dim, dim_head=64, heads=8):
         super().__init__()
-        self.scale = dim_head**-0.5
+        self.scale = dim_head ** -0.5
         self.heads = heads
         inner_dim = dim_head * heads
 

@@ -42,6 +42,7 @@ def init_norm_as_noaffine(m):
         if m.weight is not None:
             nn.init.constant_(m.weight, 1.)
 
+
 # LEGACY remove
 def init_norms_as_noaffine(m):
     if isinstance(m, ALL_NORMS):
@@ -73,6 +74,7 @@ def init_norm_as_identity(m):
             nn.init.constant_(m.bias, 0.)
         if m.weight is not None:
             nn.init.constant_(m.weight, 0.)
+
 
 # LEGACY remove
 def init_norms_as_identity(m):

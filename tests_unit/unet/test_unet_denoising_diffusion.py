@@ -1,7 +1,9 @@
-import torch
 import unittest
 
+import torch
+
 from kappamodules.unet import UnetDenoisingDiffusion
+
 
 class TestUnetDenoisingDiffusion(unittest.TestCase):
     def test_1d_uncond(self):

@@ -1,7 +1,9 @@
 import unittest
 
-from kappamodules.vit import VitBatchNorm
 import torch
+
+from kappamodules.vit import VitBatchNorm
+
 
 class TestVitBatchNorm(unittest.TestCase):
     def test_0d(self):

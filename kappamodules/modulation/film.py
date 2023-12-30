@@ -1,10 +1,8 @@
-import math
-
 from torch import nn
 
+from kappamodules.init import init_xavier_uniform_merged_linear
 from kappamodules.utils.shapes import to_ndim
 
-from kappamodules.init import init_xavier_uniform_merged_linear
 
 class Film(nn.Module):
     def __init__(self, dim_cond, dim_out, init_weights="xavier_uniform"):
