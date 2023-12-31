@@ -58,6 +58,11 @@ class TestContinuousSincosEmbed(unittest.TestCase):
         actual = ContinuousSincosEmbed(dim=dim, ndim=len(seqlens), dtype=torch.double)(coords).reshape(*expected.shape)
         self.assertTrue(torch.all(expected == actual))
 
+    def test_shape_3d_dim256(self):
+        dim = 256
+        actual = ContinuousSincosEmbed(dim=dim, ndim=3)(torch.rand(1, 3))
+        self.assertEqual((1, dim), actual.shape)
+
     def test_padding_equals_regulargridpadding(self):
         seqlens = (3, 4)
         dim = 15

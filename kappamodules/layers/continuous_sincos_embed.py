@@ -13,7 +13,7 @@ class ContinuousSincosEmbed(nn.Module):
         dim_per_ndim = (dim - self.ndim_padding) // ndim
         self.sincos_padding = dim_per_ndim % 2
         self.max_wavelength = max_wavelength
-        self.padding = self.ndim_padding + self.sincos_padding * 2
+        self.padding = self.ndim_padding + self.sincos_padding * ndim
         effective_dim_per_wave = (self.dim - self.padding) // ndim
         assert effective_dim_per_wave > 0
         self.register_buffer(
