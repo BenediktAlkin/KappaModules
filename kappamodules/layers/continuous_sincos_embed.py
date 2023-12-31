@@ -30,7 +30,7 @@ class ContinuousSincosEmbed(nn.Module):
         if coords.ndim == 3:
             emb = einops.rearrange(emb, "bs num_points ndim dim -> bs num_points (ndim dim)")
         elif coords.ndim == 2:
-            emb = einops.rearrange(emb, "bs_times_num_points ndim dim -> bs_times_num_points (ndim dim)")
+            emb = einops.rearrange(emb, "num_points ndim dim -> num_points (ndim dim)")
         else:
             raise NotImplementedError
         emb = emb.to(out_dtype)
