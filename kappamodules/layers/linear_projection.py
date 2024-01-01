@@ -20,3 +20,6 @@ class LinearProjection(nn.Module):
             init_xavier_uniform_zero_bias(self.proj)
         else:
             raise NotImplementedError
+
+    def forward(self, x):
+        return self.proj(x)
