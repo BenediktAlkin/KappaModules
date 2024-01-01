@@ -16,7 +16,7 @@ class LinearProjection(nn.Module):
     def reset_parameters(self):
         if self.init_weights == "torch":
             pass
-        elif self.init_weights == "nonaffine":
+        elif self.init_weights == "xavier_uniform":
             init_xavier_uniform_zero_bias(self.proj)
         else:
             raise NotImplementedError
