@@ -81,7 +81,7 @@ class UnetDenoisingDiffusion(nn.Module):
     stem was modified to not downsample the input -> the input is expected to be a latent representation
     """
 
-    def __init__(self, dim, dim_in, dim_out, ndim, num_heads, depth, dim_cond=None):
+    def __init__(self, dim, dim_in, ndim, num_heads, depth, dim_out=None, dim_cond=None):
         super().__init__()
         self.dim = dim
         self.dim_in = dim_in
@@ -192,7 +192,10 @@ class UnetDenoisingDiffusion(nn.Module):
 
         # final block
         self.final_res_block = block_ctor(dim_in=dim * 2, dim_out=dim)
-        self.final_conv = conv_ctor(dim, self.dim_out, kernel_size=1)
+        if self.dim_out is None:
+            self.final_conv = nn.Identity()
+        else:
+            self.final_conv = conv_ctor(dim, self.dim_out, kernel_size=1)
 
     def forward(self, x, cond=None):
         # stem
