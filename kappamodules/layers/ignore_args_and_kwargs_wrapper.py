@@ -12,8 +12,9 @@ class IgnoreArgsAndKwargsWrapper(nn.Module):
     )
     y = self.message(x, batch=batch)
     """
+    def __init__(self, module):
+        super().__init__()
+        self.module = module
 
-    def forward(self, x, *args, **kwargs):
-        for module in self:
-            x = module(x, *args, **kwargs)
-        return x
+    def forward(self, x, *_, **__):
+        return self.module(x)
