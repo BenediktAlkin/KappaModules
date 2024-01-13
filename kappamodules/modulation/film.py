@@ -1,6 +1,6 @@
 from torch import nn
 
-from kappamodules.init import init_xavier_uniform_merged_linear
+from kappamodules.init import init_xavier_uniform_merged_linear, init_truncnormal_zero_bias
 from kappamodules.utils.shapes import to_ndim
 
 
@@ -18,7 +18,8 @@ class Film(nn.Module):
             pass
         elif self.init_weights == "xavier_uniform":
             init_xavier_uniform_merged_linear(self.modulation, num_layers=2)
-            nn.init.zeros_(self.modulation.bias)
+        elif self.init_weights == "truncnormal":
+            self.apply(init_truncnormal_zero_bias)
         else:
             raise NotImplementedError
 

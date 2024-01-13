@@ -149,5 +149,8 @@ def init_xavier_uniform_merged_linear(module, num_layers):
     assert isinstance(module, nn.Linear)
     # treat the weights of the merged linear layer as individual layers
     # e.g. with attention num_layers=3 (considers Q, K, V separately)
+    assert module.weight.shape[0] % num_layers == 0
     val = (6 / (module.weight.shape[0] // num_layers + module.weight.shape[1])) ** 0.5
     nn.init.uniform_(module.weight, -val, val)
+    if module.bias is not None:
+        nn.init.constant_(module.bias, 0.)
