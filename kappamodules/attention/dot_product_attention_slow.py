@@ -18,6 +18,7 @@ class DotProductAttentionSlow(nn.Module):
             proj_drop=0.,
             norm_layer=nn.LayerNorm,
             init_weights="xavier_uniform",
+            init_last_proj_zero=False,
     ):
         super().__init__()
         assert dim % num_heads == 0, "dim should be divisible by num_heads"
@@ -25,6 +26,7 @@ class DotProductAttentionSlow(nn.Module):
         self.head_dim = dim // num_heads
         self.scale = self.head_dim ** -0.5
         self.init_weights = init_weights
+        self.init_last_proj_zero = init_last_proj_zero
 
         self.qkv = nn.Linear(dim, dim * 3, bias=qkv_bias)
         self.q_norm = norm_layer(self.head_dim) if qk_norm else nn.Identity()
@@ -45,6 +47,8 @@ class DotProductAttentionSlow(nn.Module):
             self.apply(init_truncnormal_zero_bias)
         else:
             raise NotImplementedError
+        if self.init_last_proj_zero:
+            nn.init.zeros_(self.fc2.weight)
 
     def forward(self, x):
         B, N, C = x.shape

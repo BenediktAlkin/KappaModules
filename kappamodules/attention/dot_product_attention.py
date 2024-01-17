@@ -10,14 +10,23 @@ from kappamodules.init import (
 
 
 class DotProductAttention(nn.Module):
-    def __init__(self, dim, num_heads=8, qkv_bias=True, init_weights="truncnormal", channel_first=False):
+    def __init__(
+            self,
+            dim,
+            num_heads=8,
+            qkv_bias=True,
+            channel_first=False,
+            init_weights="truncnormal",
+            init_last_proj_zero=False,
+    ):
         super().__init__()
         assert hasattr(F, "scaled_dot_product_attention")
         assert dim % num_heads == 0, "dim should be divisible by num_heads"
         self.num_heads = num_heads
         self.head_dim = dim // num_heads
-        self.init_weights = init_weights
         self.channel_first = channel_first
+        self.init_weights = init_weights
+        self.init_last_proj_zero = init_last_proj_zero
 
         self.qkv = nn.Linear(dim, dim * 3, bias=qkv_bias)
         self.proj = nn.Linear(dim, dim)
@@ -34,6 +43,8 @@ class DotProductAttention(nn.Module):
             self.apply(init_truncnormal_zero_bias)
         else:
             raise NotImplementedError
+        if self.init_last_proj_zero:
+            nn.init.zeros_(self.fc2.weight)
 
     def to_channel_last(self, x):
         raise NotImplementedError

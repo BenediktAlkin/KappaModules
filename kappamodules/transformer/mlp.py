@@ -13,9 +13,11 @@ class Mlp(nn.Module):
             act_ctor=nn.GELU,
             bias=True,
             init_weights="xavier_uniform",
+            init_last_proj_zero=False,
     ):
         super().__init__()
         self.init_weights = init_weights
+        self.init_last_proj_zero = init_last_proj_zero
         out_dim = out_dim or in_dim
         hidden_dim = hidden_dim or in_dim
         bias1, bias2 = to_2tuple(bias)
@@ -34,6 +36,8 @@ class Mlp(nn.Module):
             self.apply(init_truncnormal_zero_bias)
         else:
             raise NotImplementedError
+        if self.init_last_proj_zero:
+            nn.init.zeros_(self.fc2.weight)
 
     def forward(self, x):
         x = self.fc1(x)

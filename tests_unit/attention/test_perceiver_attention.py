@@ -53,3 +53,10 @@ class TestPerceiverAttention(unittest.TestCase):
         self.assertEqual(q.shape, y_og.shape)
         self.assertEqual(y_kc.shape, y_og.shape)
         self.assertTrue(torch.allclose(y_kc, y_og))
+
+    def test_init_last_proj_zero(self):
+        attn = PerceiverAttention1d(dim=8, num_heads=4, init_last_proj_zero=True)
+        q = torch.randn(2, 6, 8)
+        kv = torch.randn(2, 7, 8)
+        y = attn(q=q, kv=kv)
+        self.assertTrue(torch.all(y == 0))
