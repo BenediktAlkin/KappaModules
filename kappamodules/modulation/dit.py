@@ -1,6 +1,7 @@
 import math
 
 from torch import nn
+from kappamodules.init.functional import init_truncnormal_zero_bias, init_xavier_uniform_merged_linear
 
 
 class Dit(nn.Module):
@@ -14,15 +15,12 @@ class Dit(nn.Module):
         self.reset_parameters()
 
     def reset_parameters(self):
-        fan_in = self.modulation.weight.shape[1]
-        assert self.modulation.weight.shape[0] % self.num_outputs == 0
-        fan_out = self.modulation.weight.shape[0] // self.num_outputs
         if self.init_weights == "torch":
             pass
         elif self.init_weights == "xavier_uniform":
-            val = math.sqrt(6 / (fan_out + fan_in))
-            nn.init.uniform_(self.modulation.weight, -val, val)
-            nn.init.zeros_(self.modulation.bias)
+            init_xavier_uniform_merged_linear(self.modulation, num_layers=self.num_outputs)
+        elif self.init_weights == "truncnormal":
+            init_truncnormal_zero_bias(self.modulation)
         else:
             raise NotImplementedError
 

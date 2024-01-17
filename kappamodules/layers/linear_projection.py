@@ -1,6 +1,6 @@
 from torch import nn
 
-from kappamodules.init import init_xavier_uniform_zero_bias
+from kappamodules.init import init_xavier_uniform_zero_bias, init_truncnormal_zero_bias
 
 
 class LinearProjection(nn.Module):
@@ -28,6 +28,8 @@ class LinearProjection(nn.Module):
             pass
         elif self.init_weights == "xavier_uniform":
             init_xavier_uniform_zero_bias(self.proj)
+        elif self.init_weights == "truncnormal":
+            init_truncnormal_zero_bias(self.proj)
         else:
             raise NotImplementedError
 
