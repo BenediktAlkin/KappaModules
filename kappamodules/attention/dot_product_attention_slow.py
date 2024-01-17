@@ -48,7 +48,7 @@ class DotProductAttentionSlow(nn.Module):
         else:
             raise NotImplementedError
         if self.init_last_proj_zero:
-            nn.init.zeros_(self.fc2.weight)
+            nn.init.zeros_(self.proj.weight)
 
     def forward(self, x):
         B, N, C = x.shape

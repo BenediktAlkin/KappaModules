@@ -44,7 +44,7 @@ class DotProductAttention(nn.Module):
         else:
             raise NotImplementedError
         if self.init_last_proj_zero:
-            nn.init.zeros_(self.fc2.weight)
+            nn.init.zeros_(self.proj.weight)
 
     def to_channel_last(self, x):
         raise NotImplementedError
