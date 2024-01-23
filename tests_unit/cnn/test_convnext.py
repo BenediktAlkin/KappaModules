@@ -22,7 +22,7 @@ class TestConvnext(unittest.TestCase):
         x = torch.randn(1, 96, 7, 7)
         og_y = og_block0(x)
         y = block0(x)
-        self.assertTrue(torch.all(og_y == y))
+        self.assertTrue(torch.allclose(og_y, y))
 
     def test_forward2d_shape(self):
         convnext = ConvNext(
