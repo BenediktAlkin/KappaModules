@@ -11,7 +11,7 @@ class TestConvnext(unittest.TestCase):
         torch.manual_seed(894)
         og = create_model("convnextv2_small")
         og_block0 = og.stages[0].blocks[0]
-        block0 = ConvNextBlock(input_dim=96, norm_ctor=partial(LayerNorm2d, eps=1e-6))
+        block0 = ConvNextBlock(dim=96, norm_ctor=partial(LayerNorm2d, eps=1e-6))
         self.assertEqual(
             sum(p.numel() for p in block0.parameters()),
             sum(p.numel() for p in og_block0.parameters()),
