@@ -3,6 +3,7 @@ from functools import partial
 from kappamodules.layers import LayerNorm3d, LayerNorm2d, LayerNorm1d
 from kappamodules.mlp import Mlp
 from functools import partial
+from kappamodules.init import init_truncnormal_zero_bias
 
 from torch import nn
 
@@ -109,6 +110,10 @@ class ConvNext(nn.Module):
                 for i in range(len(dims))
             ],
         )
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        init_truncnormal_zero_bias(self)
 
     def forward(self, x):
         x = self.stem(x)
