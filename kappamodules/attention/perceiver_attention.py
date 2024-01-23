@@ -11,7 +11,15 @@ from kappamodules.init import (
 
 
 class PerceiverAttention(nn.Module):
-    def __init__(self, dim, num_heads=8, bias=True, concat_query_to_kv=False, init_weights="truncnormal"):
+    def __init__(
+            self,
+            dim,
+            num_heads=8,
+            bias=True,
+            concat_query_to_kv=False,
+            init_weights="truncnormal",
+            init_last_proj_zero=False,
+    ):
         super().__init__()
         assert hasattr(F, "scaled_dot_product_attention")
         assert dim % num_heads == 0, "dim should be divisible by num_heads"
@@ -19,6 +27,7 @@ class PerceiverAttention(nn.Module):
         self.head_dim = dim // num_heads
         self.concat_query_to_kv = concat_query_to_kv
         self.init_weights = init_weights
+        self.init_last_proj_zero = init_last_proj_zero
 
         self.kv = nn.Linear(dim, dim * 2, bias=bias)
         self.q = nn.Linear(dim, dim, bias=bias)
@@ -36,6 +45,8 @@ class PerceiverAttention(nn.Module):
             self.apply(init_truncnormal_zero_bias)
         else:
             raise NotImplementedError
+        if self.init_last_proj_zero:
+            nn.init.zeros_(self.proj.weight)
 
     def forward(self, q, kv, attn_mask=None):
         # project to attention space

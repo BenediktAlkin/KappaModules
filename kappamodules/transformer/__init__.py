@@ -1,3 +1,4 @@
+from .dit_block import DitBlock
 from .dit_perceiver_block import DitPerceiverBlock
 from .dit_perceiver_pooling_block import DitPerceiverPoolingBlock
 from .mlp import Mlp

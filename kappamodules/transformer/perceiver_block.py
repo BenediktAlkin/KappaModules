@@ -22,6 +22,7 @@ class PerceiverBlock(nn.Module):
             eps=1e-6,
             init_weights="xavier_uniform",
             init_norms="nonaffine",
+            init_last_proj_zero=False,
     ):
         super().__init__()
         self.init_norms = init_norms
@@ -34,6 +35,7 @@ class PerceiverBlock(nn.Module):
             bias=bias,
             concat_query_to_kv=concat_query_to_kv,
             init_weights=init_weights,
+            init_last_proj_zero=init_last_proj_zero,
         )
         self.drop_path1 = DropPath(drop_prob=drop_path)
         self.norm2 = norm_ctor(dim, eps=eps)
@@ -43,6 +45,7 @@ class PerceiverBlock(nn.Module):
             bias=bias,
             act_ctor=act_ctor,
             init_weights=init_weights,
+            init_last_proj_zero=init_last_proj_zero,
         )
         self.drop_path2 = DropPath(drop_prob=drop_path)
         self.reset_parameters()

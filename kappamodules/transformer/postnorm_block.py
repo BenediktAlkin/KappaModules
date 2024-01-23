@@ -21,15 +21,28 @@ class PostnormBlock(nn.Module):
             eps=1e-6,
             init_weights="xavier_uniform",
             init_norms="nonaffine",
+            init_last_proj_zero=False,
     ):
         super().__init__()
         self.init_norms = init_norms
         mlp_hidden_dim = mlp_hidden_dim or dim * 4
         attn_ctor = DotProductAttention1d if use_flash_attention else DotProductAttentionSlow
-        self.attn = attn_ctor(dim=dim, num_heads=num_heads, qkv_bias=qkv_bias, init_weights=init_weights)
+        self.attn = attn_ctor(
+            dim=dim,
+            num_heads=num_heads,
+            qkv_bias=qkv_bias,
+            init_weights=init_weights,
+            init_last_proj_zero=init_last_proj_zero,
+        )
         self.drop_path1 = DropPath(drop_prob=drop_path)
         self.norm1 = norm_ctor(dim, eps=eps)
-        self.mlp = Mlp(in_dim=dim, hidden_dim=mlp_hidden_dim, act_ctor=act_ctor, init_weights=init_weights)
+        self.mlp = Mlp(
+            in_dim=dim,
+            hidden_dim=mlp_hidden_dim,
+            act_ctor=act_ctor,
+            init_weights=init_weights,
+            init_last_proj_zero=init_last_proj_zero,
+        )
         self.drop_path2 = DropPath(drop_prob=drop_path)
         self.norm2 = norm_ctor(dim, eps=eps)
         self.reset_parameters()
