@@ -96,18 +96,17 @@ class ConvNext(nn.Module):
             conv_ctor(input_dim, dims[0], kernel_size=patch_size, stride=patch_size),
             norm_ctor(dims[0]),
         )
-        # stages (first stage keeps dimension and doesnt downscale)
-        dims = [dims[0]] + dims
+        # stages
         self.stages = nn.ModuleList(
             [
                 ConvNextStage(
-                    input_dim=dims[i],
-                    output_dim=dims[i + 1],
+                    input_dim=dims[max(0, i - 1)],
+                    output_dim=dims[i],
                     depth=depths[i],
                     conv_ctor=conv_ctor,
                     norm_ctor=norm_ctor,
                 )
-                for i in range(len(depths))
+                for i in range(len(dims))
             ],
         )
 
