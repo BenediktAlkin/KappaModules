@@ -2,7 +2,7 @@ from .continuous_sincos_embed import ContinuousSincosEmbed
 from .drop_path import DropPath
 from .identity import Identity
 from .ignore_args_and_kwargs_wrapper import IgnoreArgsAndKwargsWrapper
-from .layernorm import LayerNorm2d, LayerNorm3d
+from .layernorm import LayerNorm1d, LayerNorm2d, LayerNorm3d
 from .linear_projection import LinearProjection
 from .normalize import Normalize
 from .paramless_batchnorm import ParamlessBatchNorm1d
