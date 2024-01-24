@@ -82,13 +82,21 @@ class DitBlock(nn.Module):
         scale1, shift1, gate1, scale2, shift2, gate2 = self.modulation(cond)
         x = self.drop_path1(
             x,
-            partial(
-                self._attn_residual_path,
+            residual_path=self._attn_residual_path,
+            residual_path_kwargs=dict(
                 scale=scale1,
                 shift=shift1,
                 gate=gate1,
                 attn_mask=attn_mask,
-            )
+            ),
         )
-        x = self.drop_path2(x, partial(self._mlp_residual_path, scale=scale2, shift=shift2, gate=gate2))
+        x = self.drop_path2(
+            x,
+            residual_path=self._mlp_residual_path,
+            residual_path_kwargs=dict(
+                scale=scale2,
+                shift=shift2,
+                gate=gate2,
+            ),
+        )
         return x

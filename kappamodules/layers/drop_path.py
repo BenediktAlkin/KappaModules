@@ -25,13 +25,14 @@ class DropPath(nn.Sequential):
         self.scale_by_keep = scale_by_keep
         self.stochastic_drop_prob = stochastic_drop_prob
 
-    def forward(self, x, residual_path=None):
+    def forward(self, x, residual_path=None, residual_path_kwargs=None):
         assert (len(self) == 0) ^ (residual_path is None)
+        residual_path_kwargs = residual_path_kwargs or {}
         if self.drop_prob == 0. or not self.training:
             if residual_path is None:
-                return x + super().forward(x)
+                return x + super().forward(x, **residual_path_kwargs)
             else:
-                return x + residual_path(x)
+                return x + residual_path(x, **residual_path_kwargs)
         # generate indices to keep (propagated through transform path)
         bs = len(x)
         if self.stochastic_drop_prob:
@@ -47,10 +48,15 @@ class DropPath(nn.Sequential):
             alpha = scale
         else:
             alpha = 1.
+        # reduce kwargs (e.g. used for DiT block where scale/shift/gate is passed and also has to be reduced)
+        residual_path_kwargs = {
+            key: value[perm] if torch.is_tensor(value) else value
+            for key, value in residual_path_kwargs.items()
+        }
         if residual_path is None:
-            residual = super().forward(x[perm])
+            residual = super().forward(x[perm], **residual_path_kwargs)
         else:
-            residual = residual_path(x[perm])
+            residual = residual_path(x[perm], **residual_path_kwargs)
         return torch.index_add(
             x.flatten(start_dim=1),
             dim=0,

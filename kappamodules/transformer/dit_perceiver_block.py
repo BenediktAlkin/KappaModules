@@ -80,8 +80,8 @@ class DitPerceiverBlock(nn.Module):
         q_scale, q_shift, kv_scale, kv_shift, attn_gate, mlp_scale, mlp_shift, mlp_gate = self.modulation(cond)
         q = self.drop_path1(
             q,
-            partial(
-                self._attn_residual_path,
+            residual_path=self._attn_residual_path,
+            residual_path_kwargs=dict(
                 kv=kv,
                 q_scale=q_scale,
                 q_shift=q_shift,
@@ -91,5 +91,13 @@ class DitPerceiverBlock(nn.Module):
                 attn_mask=attn_mask,
             ),
         )
-        q = self.drop_path2(q, partial(self._mlp_residual_path, scale=mlp_scale, shift=mlp_shift, gate=mlp_gate))
+        q = self.drop_path2(
+            q,
+            residual_path=self._mlp_residual_path,
+            residual_path_kwargs=dict(
+                scale=mlp_scale,
+                shift=mlp_shift,
+                gate=mlp_gate,
+            ),
+        )
         return q
