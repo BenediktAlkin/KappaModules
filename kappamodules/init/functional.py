@@ -35,6 +35,17 @@ ALL_LAYERS = (
 )
 
 
+def init_with_scheme(module, scheme):
+    if scheme == "torch":
+        pass
+    elif scheme == "truncnormal":
+        module.apply(init_truncnormal_zero_bias)
+    elif scheme == "xavier_uniform":
+        module.apply(init_xavier_uniform_zero_bias)
+    else:
+        raise NotImplementedError
+
+
 def init_norm_as_noaffine(m):
     if isinstance(m, ALL_NORMS):
         if m.bias is not None:

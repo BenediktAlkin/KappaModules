@@ -3,36 +3,45 @@ from functools import partial
 import torch
 from torch import nn
 
-from kappamodules.init import init_truncnormal_zero_bias
+from kappamodules.init import init_truncnormal_zero_bias, init_with_scheme
 from kappamodules.layers import LayerNorm3d, LayerNorm2d, LayerNorm1d
 from kappamodules.mlp import Mlp
 from kappamodules.layers import DropPath
 
-
 class ConvNextBlock(nn.Module):
-    def __init__(self, dim, drop_path=0., conv_ctor=nn.Conv2d, norm_ctor=LayerNorm2d):
+    def __init__(
+            self,
+            dim,
+            drop_path=0.,
+            conv_ctor=nn.Conv2d,
+            norm_ctor=LayerNorm2d,
+            kernel_size=7,
+            depthwise=True,
+            global_response_norm=True,
+    ):
         super().__init__()
+        assert kernel_size % 2 == 1
         self.drop_path = DropPath(drop_prob=drop_path)
-        self.conv_dw = conv_ctor(
+        self.conv = conv_ctor(
             in_channels=dim,
             out_channels=dim,
-            kernel_size=7,
-            padding=3,
-            groups=dim,
+            kernel_size=kernel_size,
+            padding=kernel_size // 2,
+            groups=dim if depthwise else 1,
         )
-        if isinstance(self.conv_dw, nn.Conv1d):
+        if isinstance(self.conv, nn.Conv1d):
             ndim = 1
-        elif isinstance(self.conv_dw, nn.Conv2d):
+        elif isinstance(self.conv, nn.Conv2d):
             ndim = 2
-        elif isinstance(self.conv_dw, nn.Conv3d):
+        elif isinstance(self.conv, nn.Conv3d):
             ndim = 3
         else:
             raise NotImplementedError
         self.norm = norm_ctor(dim)
-        self.mlp = Mlp(in_dim=dim, hidden_dim=dim * 4, ndim=ndim, use_global_response_norm=True)
+        self.mlp = Mlp(in_dim=dim, hidden_dim=dim * 4, ndim=ndim, use_global_response_norm=global_response_norm)
 
     def _forward(self, x):
-        x = self.conv_dw(x)
+        x = self.conv(x)
         x = self.norm(x)
         x = self.mlp(x)
         return x
@@ -42,7 +51,18 @@ class ConvNextBlock(nn.Module):
 
 
 class ConvNextStage(nn.Module):
-    def __init__(self, input_dim, output_dim, depth, drop_path_rates=None, conv_ctor=nn.Conv2d, norm_ctor=LayerNorm2d):
+    def __init__(
+            self,
+            input_dim,
+            output_dim,
+            depth,
+            drop_path_rates=None,
+            conv_ctor=nn.Conv2d,
+            norm_ctor=LayerNorm2d,
+            kernel_size=7,
+            depthwise=True,
+            global_response_norm=True,
+    ):
         super().__init__()
         if input_dim != output_dim:
             self.downsampling = nn.Sequential(
@@ -59,6 +79,9 @@ class ConvNextStage(nn.Module):
                     conv_ctor=conv_ctor,
                     norm_ctor=norm_ctor,
                     drop_path=drop_path_rates[i],
+                    kernel_size=kernel_size,
+                    depthwise=depthwise,
+                    global_response_norm=global_response_norm,
                 )
                 for i in range(depth)
             ],
@@ -81,11 +104,15 @@ class ConvNext(nn.Module):
             dims,
             drop_path_rate=0.0,
             drop_path_decay=True,
+            depthwise=True,
+            global_response_norm=True,
             ndim=2,
             eps=1e-6,
+            init_weights="truncnormal",
     ):
         super().__init__()
         assert len(dims) == len(depths)
+        self.init_weights = init_weights
 
         # ctors
         if ndim == 1:
@@ -119,6 +146,8 @@ class ConvNext(nn.Module):
                     drop_path_rates=dprs[i],
                     conv_ctor=conv_ctor,
                     norm_ctor=norm_ctor,
+                    depthwise=depthwise,
+                    global_response_norm=global_response_norm,
                 )
                 for i in range(len(dims))
             ],
@@ -126,7 +155,7 @@ class ConvNext(nn.Module):
         self.reset_parameters()
 
     def reset_parameters(self):
-        init_truncnormal_zero_bias(self)
+        init_with_scheme(self, scheme=self.init_weights)
 
     def forward(self, x):
         x = self.stem(x)
