@@ -9,7 +9,7 @@ from kappamodules.modulation import Dit
 from kappamodules.modulation.functional import modulate_scale_shift, modulate_gate
 from .vit_mlp import VitMlp
 
-
+# TODO remove (deprecated)
 class DitBlock(nn.Module):
     """ adaptive norm block (https://github.com/facebookresearch/DiT) """
 
