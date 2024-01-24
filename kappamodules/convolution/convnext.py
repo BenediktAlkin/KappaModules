@@ -104,6 +104,7 @@ class ConvNext(nn.Module):
             dims,
             drop_path_rate=0.0,
             drop_path_decay=True,
+            kernel_size=7,
             depthwise=True,
             global_response_norm=True,
             ndim=2,
@@ -146,6 +147,7 @@ class ConvNext(nn.Module):
                     drop_path_rates=dprs[i],
                     conv_ctor=conv_ctor,
                     norm_ctor=norm_ctor,
+                    kernel_size=kernel_size,
                     depthwise=depthwise,
                     global_response_norm=global_response_norm,
                 )
