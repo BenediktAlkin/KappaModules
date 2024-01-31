@@ -81,7 +81,7 @@ class UnetDenoisingDiffusion(nn.Module):
     stem was modified to not downsample the input -> the input is expected to be a latent representation
     """
 
-    def __init__(self, dim, dim_in, ndim, num_heads, depth, dim_out=None, dim_cond=None):
+    def __init__(self, dim, dim_in, ndim, num_heads, depth, use_attn=True, dim_out=None, dim_cond=None):
         super().__init__()
         self.dim = dim
         self.dim_in = dim_in
@@ -89,6 +89,7 @@ class UnetDenoisingDiffusion(nn.Module):
         self.ndim = ndim
         self.num_heads = num_heads
         self.depth = depth
+        self.use_attn = use_attn
 
         # create ctors
         if ndim == 1:
@@ -105,6 +106,9 @@ class UnetDenoisingDiffusion(nn.Module):
             dot_product_attn_ctor = DotProductAttention3d
         else:
             raise NotImplementedError
+        if not use_attn:
+            linear_attn_ctor = Identity
+            dot_product_attn_ctor = Identity
         block_ctor = partial(ResnetBlock, conv_ctor=conv_ctor, dim_cond=dim_cond)
         upsample_conv_ctor = partial(UpsampleConv, conv_ctor=conv_ctor)
         linear_attn_ctor = partial(
