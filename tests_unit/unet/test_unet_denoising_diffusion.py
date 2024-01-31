@@ -46,10 +46,9 @@ class TestUnetDenoisingDiffusion(unittest.TestCase):
             ndim=1,
             dim_in=num_channels,
             dim_out=num_channels,
-            num_heads=2,
             depth=2,
             dim_cond=dim_cond,
-            use_attn=False
+            num_heads=None,
         )
         x = torch.randn(2, num_channels, seqlen)
         cond = torch.randn(2, 4)
