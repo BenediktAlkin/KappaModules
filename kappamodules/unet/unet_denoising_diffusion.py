@@ -89,7 +89,6 @@ class UnetDenoisingDiffusion(nn.Module):
         self.ndim = ndim
         self.num_heads = num_heads
         self.depth = depth
-        self.use_attn = use_attn
 
         # create ctors
         if ndim == 1:
