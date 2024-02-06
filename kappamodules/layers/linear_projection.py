@@ -4,14 +4,24 @@ from kappamodules.init import init_xavier_uniform_zero_bias, init_truncnormal_ze
 
 
 class LinearProjection(nn.Module):
-    def __init__(self, input_dim, output_dim, ndim=None, bias=True, init_weights="xavier_uniform"):
+    def __init__(
+            self,
+            input_dim,
+            output_dim,
+            ndim=None,
+            bias=True,
+            optional=False,
+            init_weights="xavier_uniform",
+    ):
         super().__init__()
         self.input_dim = input_dim
         self.output_dim = output_dim
         self.ndim = ndim
         self.bias = bias
         self.init_weights = init_weights
-        if ndim is None:
+        if optional and input_dim == output_dim:
+            self.proj = nn.Identity()
+        elif ndim is None:
             self.proj = nn.Linear(input_dim, output_dim, bias=bias)
         elif ndim == 1:
             self.proj = nn.Conv1d(input_dim, output_dim, kernel_size=1, bias=bias)
@@ -28,7 +38,7 @@ class LinearProjection(nn.Module):
             pass
         elif self.init_weights == "xavier_uniform":
             init_xavier_uniform_zero_bias(self.proj)
-        elif self.init_weights == "truncnormal":
+        elif self.init_weights in ["truncnormal", "truncnormal002"]:
             init_truncnormal_zero_bias(self.proj)
         else:
             raise NotImplementedError
