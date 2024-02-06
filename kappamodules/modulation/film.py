@@ -18,7 +18,7 @@ class Film(nn.Module):
             pass
         elif self.init_weights == "xavier_uniform":
             init_xavier_uniform_merged_linear(self.modulation, num_layers=2)
-        elif self.init_weights == "truncnormal":
+        elif self.init_weights in ["truncnormal", "truncnormal002"]:
             self.apply(init_truncnormal_zero_bias)
         else:
             raise NotImplementedError

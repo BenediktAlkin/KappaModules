@@ -41,7 +41,7 @@ class PerceiverAttention(nn.Module):
         elif self.init_weights == "xavier_uniform":
             self.apply(init_xavier_uniform_zero_bias)
             init_xavier_uniform_merged_linear(self.kv, num_layers=2)
-        elif self.init_weights == "truncnormal":
+        elif self.init_weights in ["truncnormal", "truncnormal002"]:
             self.apply(init_truncnormal_zero_bias)
         else:
             raise NotImplementedError

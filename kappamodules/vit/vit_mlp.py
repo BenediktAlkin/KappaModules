@@ -30,7 +30,7 @@ class VitMlp(nn.Module):
             pass
         elif self.init_weights == "xavier_uniform":
             self.apply(init_xavier_uniform_zero_bias)
-        elif self.init_weights == "truncnormal":
+        elif self.init_weights in ["truncnormal", "truncnormal002"]:
             self.apply(init_truncnormal_zero_bias)
         else:
             raise NotImplementedError

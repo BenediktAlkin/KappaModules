@@ -19,7 +19,7 @@ class Dit(nn.Module):
             pass
         elif self.init_weights == "xavier_uniform":
             init_xavier_uniform_merged_linear(self.modulation, num_layers=self.num_outputs)
-        elif self.init_weights == "truncnormal":
+        elif self.init_weights in ["truncnormal", "truncnormal002"]:
             init_truncnormal_zero_bias(self.modulation)
         else:
             raise NotImplementedError
