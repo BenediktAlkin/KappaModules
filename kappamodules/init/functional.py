@@ -38,7 +38,7 @@ ALL_LAYERS = (
 def init_with_scheme(module, scheme):
     if scheme == "torch":
         pass
-    elif scheme == "truncnormal":
+    elif scheme in ["truncnormal", "truncnormal002"]:
         module.apply(init_truncnormal_zero_bias)
     elif scheme == "xavier_uniform":
         module.apply(init_xavier_uniform_zero_bias)

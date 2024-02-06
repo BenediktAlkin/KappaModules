@@ -16,7 +16,7 @@ class DotProductAttention(nn.Module):
             num_heads=8,
             qkv_bias=True,
             channel_first=False,
-            init_weights="truncnormal",
+            init_weights="truncnormal002",
             init_last_proj_zero=False,
     ):
         super().__init__()

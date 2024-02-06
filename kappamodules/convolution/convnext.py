@@ -109,7 +109,7 @@ class ConvNext(nn.Module):
             global_response_norm=True,
             ndim=2,
             eps=1e-6,
-            init_weights="truncnormal",
+            init_weights="truncnormal002",
     ):
         super().__init__()
         assert len(dims) == len(depths)

@@ -17,7 +17,7 @@ class PerceiverAttention(nn.Module):
             num_heads=8,
             bias=True,
             concat_query_to_kv=False,
-            init_weights="truncnormal",
+            init_weights="truncnormal002",
             init_last_proj_zero=False,
     ):
         super().__init__()
