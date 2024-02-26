@@ -29,7 +29,7 @@ class PerceiverBlock(nn.Module):
         self.init_norms = init_norms
         mlp_hidden_dim = mlp_hidden_dim or dim * 4
         self.norm1q = norm_ctor(dim, eps=eps)
-        self.norm1kv = norm_ctor(dim, eps=eps)
+        self.norm1kv = norm_ctor(kv_dim or dim, eps=eps)
         self.attn = PerceiverAttention1d(
             dim=dim,
             num_heads=num_heads,
