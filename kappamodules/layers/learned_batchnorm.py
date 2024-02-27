@@ -1,5 +1,4 @@
 import torch
-import torch.nn.functional as F
 from torch import nn
 
 
@@ -11,8 +10,8 @@ class LearnedBatchNorm(nn.Module):
         self.mean = nn.Parameter(torch.zeros(*self._shape()))
         self.logvar = nn.Parameter(torch.zeros(*self._shape()))
         if affine:
-            self.weight = nn.Parameters(torch.ones(*self._shape()))
-            self.bias = nn.Parameters(torch.zeros(*self._shape()))
+            self.weight = nn.Parameter(torch.ones(*self._shape()))
+            self.bias = nn.Parameter(torch.zeros(*self._shape()))
         else:
             self.weight = None
             self.bias = None
@@ -21,15 +20,8 @@ class LearnedBatchNorm(nn.Module):
         return 1, self.dim
 
     def forward(self, x):
-        return F.batch_norm(
-            input=x,
-            running_mean=self.mean,
-            running_var=self.logvar.exp(),
-            weight=self.weight,
-            bias=self.bias,
-            # avoid updating mean/var
-            training=False,
-        )
+        # NOTE: cant use F.batch_norm as it is not differentiable to running_mean/running_var
+        return (x - self.mean) / self.logvar.exp() * self.weight + self.bias
 
 
 class LearnedBatchNorm1d(LearnedBatchNorm):
