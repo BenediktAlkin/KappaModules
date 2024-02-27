@@ -23,3 +23,11 @@ class TestAsyncBatchNorm(unittest.TestCase):
         # compate to batchnorm
         y3 = bn(x)
         self.assertTrue(torch.allclose(y2.std(), y3.std()))
+
+    def test_abn_backward(self):
+        x = torch.rand(size=(3, 10), generator=torch.Generator().manual_seed(843))
+        asb = AsyncBatchNorm(dim=10)
+        y = asb(x)
+        y.mean().backward()
+        self.assertEqual(x.shape, y.shape)
+

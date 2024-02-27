@@ -37,7 +37,7 @@ class AsyncBatchNorm(nn.Module):
     def _shape(self):
         return self.dim,
 
-    def _update_stats(self):
+    def _update_stats(self, inplace):
         assert all(self.batchsize_buffer[0] == bsb for bsb in self.batchsize_buffer[1:])
         # accumulate stats
         if self.gradient_accumulation_steps == 1:
@@ -65,8 +65,14 @@ class AsyncBatchNorm(nn.Module):
         self.mean_buffer.clear()
         self.var_buffer.clear()
         # update stats
-        self.mean.mul_(self.momentum).add_(mean, alpha=1. - self.momentum)
-        self.var.mul_(self.momentum).add_(var, alpha=1. - self.momentum)
+        if inplace:
+            # if used in nograd environment -> inplace
+            self.mean.mul_(self.momentum).add_(mean, alpha=1. - self.momentum)
+            self.var.mul_(self.momentum).add_(var, alpha=1. - self.momentum)
+        else:
+            # if used in grad is required -> old mean/var are required for backward
+            self.mean = (self.mean * self.momentum).add_(mean, alpha=1. - self.momentum)
+            self.var = (self.var * self.momentum).add_(var, alpha=1. - self.momentum)
 
     def forward(self, x):
         if self.training:
@@ -97,6 +103,6 @@ class AsyncBatchNorm(nn.Module):
                 self.mean_buffer.append(og_x.mean(dim=0))
                 self.var_buffer.append(og_x.var(dim=0, unbiased=False))
             if len(self.mean_buffer) == self.gradient_accumulation_steps:
-                self._update_stats()
+                self._update_stats(inplace=not x.requires_grad)
 
         return x
