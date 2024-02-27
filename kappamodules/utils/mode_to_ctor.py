@@ -1,6 +1,6 @@
 from torch import nn
 
-from kappamodules.layers import Identity
+from kappamodules.layers import Identity, LearnedBatchNorm, AsyncBatchNorm
 
 
 def mode_to_norm_ctor(mode):
@@ -27,4 +27,8 @@ def mode_to_norm_ctor(mode):
         return nn.GroupNorm, True
     if mode in ["lrn", "localresponsenorm"]:
         return nn.LocalResponseNorm, True
+    if mode in ["learned", "learenedbatchnorm"]:
+        return LearnedBatchNorm, False
+    if mode in ["abn", "asyncbatchnorm"]:
+        return AsyncBatchNorm, False
     raise NotImplementedError(f"no suitable norm constructor found for '{mode}'")
