@@ -12,3 +12,4 @@ from .residual import Residual
 from .rms_norm import RMSNorm
 from .sequential import Sequential
 from .weight_norm_linear import WeightNormLinear
+from .async_batchnorm import AsyncBatchNorm
