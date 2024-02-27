@@ -8,7 +8,8 @@ from torch import nn
 
 class AsyncBatchNormStateDictPreHook:
     def __call__(self, *args, **kwargs):
-        raise NotImplementedError
+        if dist.is_initialized():
+            raise NotImplementedError
 
 
 class AsyncBatchNorm(nn.Module):
