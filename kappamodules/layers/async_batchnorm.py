@@ -7,9 +7,9 @@ from torch import nn
 
 
 class AsyncBatchNormStateDictPreHook:
-    def __call__(self, *args, **kwargs):
+    def __call__(self, module, *args, **kwargs):
         if dist.is_initialized():
-            raise NotImplementedError
+            module.finish()
 
 
 class AsyncBatchNorm(nn.Module):
@@ -38,7 +38,25 @@ class AsyncBatchNorm(nn.Module):
     def _shape(self):
         return self.dim,
 
+    def finish(self):
+        self._update_stats(inplace=True)
+
     def _update_stats(self, inplace):
+        if self._async_handle is not None:
+            # get from async handle
+            self._async_handle.wait()
+            x = self._async_handle.get_future().value()
+            x = torch.concat(x)
+            self._async_handle = None
+            # add stats to buffer
+            self.batchsize_buffer.append(len(x))
+            self.mean_buffer.append(x.mean(dim=0))
+            self.var_buffer.append(x.var(dim=0, unbiased=False))
+
+        # check if update is already needed
+        if len(self.mean_buffer) < self.gradient_accumulation_steps:
+            return
+
         assert all(self.batchsize_buffer[0] == bsb for bsb in self.batchsize_buffer[1:])
         # accumulate stats
         if self.gradient_accumulation_steps == 1:
@@ -81,9 +99,16 @@ class AsyncBatchNorm(nn.Module):
                 raise NotImplementedError("AsyncBatchNorm with batch_size requires syncing features instead of stats")
 
         # multi GPU -> queue communication of batch stats
-        if self.training and dist.is_initialized():
-            assert x.requires_grad, "AsyncBatchNorm doesn't support no_grad in training mode"
-            raise NotImplementedError
+        if dist.is_initialized():
+            if self.training:
+                assert x.requires_grad, "distributed AsyncBatchNorm doesn't support no_grad in training mode"
+            # update stats for previous iteration
+            if self._async_handle is not None:
+                self._update_stats(inplace=True)
+            # queue synchonization for current iteration
+            assert self._async_handle is None
+            tensor_list = [torch.zeros_like(x) for _ in range(dist.get_world_size())]
+            self._async_handle = dist.all_gather(tensor_list, x, async_op=True)
 
         og_x = x
         x = F.batch_norm(
