@@ -107,3 +107,22 @@ class AsyncBatchNorm(nn.Module):
                 self._update_stats(inplace=not x.requires_grad)
 
         return x
+
+    @classmethod
+    def convert_async_batchnorm(cls, module):
+        module_output = module
+        if isinstance(module, nn.BatchNorm1d):
+            module_output = AsyncBatchNorm(
+                dim=module.num_features,
+                momentum=module.momentum,
+                affine=module.affine,
+                eps=module.eps,
+            )
+            if module.affine:
+                with torch.no_grad():
+                    module_output.weight = module.weight
+                    module_output.bias = module.bias
+        for name, child in module.named_children():
+            module_output.add_module(name, cls.convert_async_batchnorm(child))
+        del module
+        return module_output

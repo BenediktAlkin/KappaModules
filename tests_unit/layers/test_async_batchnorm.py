@@ -1,6 +1,7 @@
 import unittest
 
 import torch
+from torch import nn
 
 from kappamodules.layers import AsyncBatchNorm
 
@@ -31,3 +32,7 @@ class TestAsyncBatchNorm(unittest.TestCase):
         y.mean().backward()
         self.assertEqual(x.shape, y.shape)
 
+    def test_convert(self):
+        syncbn = nn.Sequential(nn.Linear(5, 10), nn.BatchNorm1d(10))
+        asyncbn = AsyncBatchNorm.convert_async_batchnorm(syncbn)
+        self.assertIsInstance(asyncbn[1], AsyncBatchNorm)
