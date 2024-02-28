@@ -32,7 +32,16 @@ class TestAsyncBatchNorm(unittest.TestCase):
         y.mean().backward()
         self.assertEqual(x.shape, y.shape)
 
-    def test_convert(self):
+    def test_convert_nostats(self):
         syncbn = nn.Sequential(nn.Linear(5, 10), nn.BatchNorm1d(10))
         asyncbn = AsyncBatchNorm.convert_async_batchnorm(syncbn)
         self.assertIsInstance(asyncbn[1], AsyncBatchNorm)
+
+    def test_convert_withstats(self):
+        bn = nn.BatchNorm1d(10)
+        bn(torch.rand(4, 10, generator=torch.Generator().manual_seed(84)))
+        syncbn = nn.Sequential(nn.Linear(5, 10), bn)
+        asyncbn = AsyncBatchNorm.convert_async_batchnorm(syncbn)
+        self.assertIsInstance(asyncbn[1], AsyncBatchNorm)
+        self.assertTrue(torch.all(bn.running_mean == asyncbn[1].mean))
+        self.assertTrue(torch.all(bn.running_var == asyncbn[1].var))

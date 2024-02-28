@@ -22,22 +22,19 @@ class AsyncBatchNorm(nn.Module):
         self.eps = eps
         self.gradient_accumulation_steps = gradient_accumulation_steps or os.environ.get("GRAD_ACC_STEPS", None) or 1
         assert self.gradient_accumulation_steps > 0
-        self.register_buffer("mean", torch.zeros(*self._shape()))
-        self.register_buffer("var", torch.ones(*self._shape()))
+        self.register_buffer("mean", torch.zeros(dim))
+        self.register_buffer("var", torch.ones(dim))
         self.batchsize_buffer = []
         self.mean_buffer = []
         self.var_buffer = []
         self._async_handle = None
         if affine:
-            self.weight = nn.Parameter(torch.ones(*self._shape()))
-            self.bias = nn.Parameter(torch.zeros(*self._shape()))
+            self.weight = nn.Parameter(torch.ones(dim))
+            self.bias = nn.Parameter(torch.zeros(dim))
         else:
             self.weight = None
             self.bias = None
         self.register_state_dict_pre_hook(AsyncBatchNormStateDictPreHook())
-
-    def _shape(self):
-        return self.dim,
 
     @staticmethod
     def _x_to_stats(x):
@@ -160,7 +157,21 @@ class AsyncBatchNorm(nn.Module):
                 with torch.no_grad():
                     module_output.weight = module.weight
                     module_output.bias = module.bias
+            module_output.mean = module.running_mean
+            module_output.var = module.running_var
         for name, child in module.named_children():
             module_output.add_module(name, cls.convert_async_batchnorm(child))
         del module
         return module_output
+
+
+class AsyncBatchNorm1d(AsyncBatchNorm):
+    pass
+
+
+class AsyncBatchNorm2d(AsyncBatchNorm):
+    pass
+
+
+class AsyncBatchNorm3d(AsyncBatchNorm):
+    pass
