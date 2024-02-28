@@ -1,5 +1,6 @@
 import os
 
+import einops
 import torch
 import torch.distributed as dist
 import torch.nn.functional as F
@@ -38,6 +39,16 @@ class AsyncBatchNorm(nn.Module):
     def _shape(self):
         return self.dim,
 
+    @staticmethod
+    def _x_to_stats(x):
+        # handles all use-cases
+        # - x.ndim == 2 (dim,) -> average over dim=[0]
+        # - x.ndim == 3 (dim, height) -> average over dim=[0, 2]
+        # - x.ndim == 4 (dim, height, width) -> average over dim=[0, 2, 3]
+        # - x.ndim == 5 (dim, height, width, depth) -> average over dim=[0, 2, 3, 4]
+        x = einops.rearrange(x, "bs dim ... -> (bs ...) dim")
+        return x.mean(dim=0), x.var(dim=0, unbiased=False)
+
     def finish(self):
         self._update_stats(inplace=True)
 
@@ -50,8 +61,9 @@ class AsyncBatchNorm(nn.Module):
             self._async_handle = None
             # add stats to buffer
             self.batchsize_buffer.append(len(x))
-            self.mean_buffer.append(x.mean(dim=0))
-            self.var_buffer.append(x.var(dim=0, unbiased=False))
+            xmean, xvar = self._x_to_stats(x)
+            self.mean_buffer.append(xmean)
+            self.var_buffer.append(xvar)
 
         # check if update is already needed
         if len(self.mean_buffer) < self.gradient_accumulation_steps:
@@ -96,20 +108,20 @@ class AsyncBatchNorm(nn.Module):
     def forward(self, x):
         if self.training:
             if len(x) == 1:
-                raise NotImplementedError("AsyncBatchNorm with batch_size requires syncing features instead of stats")
+                raise NotImplementedError("AsyncBatchNorm batch_size=1 requires syncing features instead of stats")
 
         # multi GPU -> queue communication of batch stats
         if dist.is_initialized():
-            if self.training:
-                assert x.requires_grad, "distributed AsyncBatchNorm doesn't support no_grad in training mode"
             # update stats for previous iteration
             if self._async_handle is not None:
                 self._update_stats(inplace=True)
             # queue synchonization for current iteration
-            assert self._async_handle is None
-            tensor_list = [torch.zeros_like(x) for _ in range(dist.get_world_size())]
-            self._async_handle = dist.all_gather(tensor_list, x, async_op=True)
+            if self.training:
+                assert self._async_handle is None
+                tensor_list = [torch.zeros_like(x) for _ in range(dist.get_world_size())]
+                self._async_handle = dist.all_gather(tensor_list, x, async_op=True)
 
+        # normalize
         og_x = x
         x = F.batch_norm(
             input=x,
@@ -126,8 +138,9 @@ class AsyncBatchNorm(nn.Module):
         if self.training and not dist.is_initialized():
             with torch.no_grad():
                 self.batchsize_buffer.append(len(og_x))
-                self.mean_buffer.append(og_x.mean(dim=0))
-                self.var_buffer.append(og_x.var(dim=0, unbiased=False))
+                xmean, xvar = self._x_to_stats(og_x)
+                self.mean_buffer.append(xmean)
+                self.var_buffer.append(xvar)
             if len(self.mean_buffer) == self.gradient_accumulation_steps:
                 self._update_stats(inplace=not x.requires_grad)
 
@@ -136,7 +149,7 @@ class AsyncBatchNorm(nn.Module):
     @classmethod
     def convert_async_batchnorm(cls, module):
         module_output = module
-        if isinstance(module, nn.BatchNorm1d):
+        if isinstance(module, (nn.BatchNorm1d, nn.BatchNorm2d, nn.BatchNorm3d)):
             module_output = AsyncBatchNorm(
                 dim=module.num_features,
                 momentum=module.momentum,
