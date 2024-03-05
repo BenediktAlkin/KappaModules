@@ -14,6 +14,7 @@ class PerceiverAttention(nn.Module):
     def __init__(
             self,
             dim,
+            kv_dim=None,
             num_heads=8,
             bias=True,
             concat_query_to_kv=False,
@@ -29,7 +30,7 @@ class PerceiverAttention(nn.Module):
         self.init_weights = init_weights
         self.init_last_proj_zero = init_last_proj_zero
 
-        self.kv = nn.Linear(dim, dim * 2, bias=bias)
+        self.kv = nn.Linear(kv_dim or dim, dim * 2, bias=bias)
         self.q = nn.Linear(dim, dim, bias=bias)
         self.proj = nn.Linear(dim, dim, bias=bias)
 

@@ -13,6 +13,7 @@ class PerceiverBlock(nn.Module):
             self,
             dim,
             num_heads,
+            kv_dim=None,
             mlp_hidden_dim=None,
             drop_path=0.,
             act_ctor=nn.GELU,
@@ -28,10 +29,11 @@ class PerceiverBlock(nn.Module):
         self.init_norms = init_norms
         mlp_hidden_dim = mlp_hidden_dim or dim * 4
         self.norm1q = norm_ctor(dim, eps=eps)
-        self.norm1kv = norm_ctor(dim, eps=eps)
+        self.norm1kv = norm_ctor(kv_dim or dim, eps=eps)
         self.attn = PerceiverAttention1d(
             dim=dim,
             num_heads=num_heads,
+            kv_dim=kv_dim,
             bias=bias,
             concat_query_to_kv=concat_query_to_kv,
             init_weights=init_weights,
