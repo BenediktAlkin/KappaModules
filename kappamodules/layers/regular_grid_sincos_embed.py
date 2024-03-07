@@ -10,7 +10,6 @@ class RegularGridSincosEmbed(nn.Module):
         self.seqlens = seqlens
         self.dim = dim
         self.is_learnable = is_learnable
-        self.allow_interpolation = allow_interpolation
         if is_learnable:
             self.embed = nn.Parameter(torch.zeros(1, *seqlens, dim))
         else:
