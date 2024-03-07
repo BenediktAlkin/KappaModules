@@ -25,6 +25,7 @@ class DitBlock(nn.Module):
             eps=1e-6,
             init_weights="xavier_uniform",
             init_norms="nonaffine",
+            init_gate_zero=False,
     ):
         super().__init__()
         # DiT uses non-affine LayerNorm and GELU with tanh-approximation
@@ -35,7 +36,14 @@ class DitBlock(nn.Module):
         mlp_hidden_dim = mlp_hidden_dim or dim * 4
         cond_dim = cond_dim or dim
         # modulation
-        self.modulation = Dit(cond_dim=cond_dim, out_dim=dim, init_weights=init_weights)
+        self.modulation = Dit(
+            cond_dim=cond_dim,
+            out_dim=dim,
+            num_outputs=6,
+            gate_indices=[2, 5],
+            init_weights=init_weights,
+            init_gate_zero=init_gate_zero,
+        )
         # attn
         self.norm1 = norm_ctor(dim, eps=eps)
         attn_ctor = DotProductAttention1d if use_flash_attention else DotProductAttentionSlow

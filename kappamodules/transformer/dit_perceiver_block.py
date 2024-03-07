@@ -25,6 +25,7 @@ class DitPerceiverBlock(nn.Module):
             init_weights="xavier_uniform",
             init_norms="nonaffine",
             init_last_proj_zero=False,
+            init_gate_zero=False,
     ):
         super().__init__()
         norm_ctor = partial(nn.LayerNorm, elementwise_affine=False)
@@ -32,7 +33,14 @@ class DitPerceiverBlock(nn.Module):
         mlp_hidden_dim = mlp_hidden_dim or dim * 4
         cond_dim = cond_dim or dim
         # modulation
-        self.modulation = Dit(cond_dim=cond_dim, out_dim=dim, num_outputs=8, init_weights=init_weights)
+        self.modulation = Dit(
+            cond_dim=cond_dim,
+            out_dim=dim,
+            num_outputs=8,
+            gate_indices=[4, 7],
+            init_weights=init_weights,
+            init_gate_zero=init_gate_zero,
+        )
         #
         self.norm1q = norm_ctor(dim, eps=eps)
         self.norm1kv = norm_ctor(dim, eps=eps)
