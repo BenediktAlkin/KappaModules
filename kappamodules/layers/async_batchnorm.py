@@ -98,7 +98,7 @@ class AsyncBatchNorm(nn.Module):
             self.mean.mul_(self.momentum).add_(mean, alpha=1. - self.momentum)
             self.var.mul_(self.momentum).add_(var, alpha=1. - self.momentum)
         else:
-            # if used in grad is required -> old mean/var are required for backward
+            # if used in grad environment -> old mean/var are required for backward
             self.mean = (self.mean * self.momentum).add_(mean, alpha=1. - self.momentum)
             self.var = (self.var * self.momentum).add_(var, alpha=1. - self.momentum)
 
