@@ -15,7 +15,7 @@ class LinearAttention(nn.Module):
             num_heads=8,
             qkv_bias=True,
             channel_first=False,
-            init_weights="truncnormal002",
+            init_weights="xavier_uniform",
             init_last_proj_zero=False,
     ):
         super().__init__()
