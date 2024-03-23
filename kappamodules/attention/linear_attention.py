@@ -10,8 +10,9 @@ class LinearAttention(nn.Module):
             dim,
             num_heads=8,
             qkv_bias=True,
-            init_weights="xavier_uniform",
             channel_first=False,
+            init_weights="truncnormal002",
+            init_last_proj_zero=False,
     ):
         super().__init__()
         assert dim % num_heads == 0, "dim should be divisible by num_heads"
@@ -19,6 +20,7 @@ class LinearAttention(nn.Module):
         self.head_dim = dim // num_heads
         self.scale = self.head_dim ** -0.5
         self.init_weights = init_weights
+        self.init_last_proj_zero = init_last_proj_zero
         self.channel_first = channel_first
 
         self.qkv = nn.Linear(dim, dim * 3, bias=qkv_bias)
@@ -33,6 +35,8 @@ class LinearAttention(nn.Module):
             self.apply(init_xavier_uniform_zero_bias)
             init_xavier_uniform_merged_linear(self.qkv, num_layers=3)
         else:
+            raise NotImplementedError
+        if self.init_last_proj_zero:
             raise NotImplementedError
 
     def to_channel_last(self, x):
