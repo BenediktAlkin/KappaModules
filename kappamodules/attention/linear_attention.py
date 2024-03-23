@@ -51,7 +51,9 @@ class LinearAttention(nn.Module):
     def to_channel_first(self, x, og_shape):
         raise NotImplementedError
 
-    def forward(self, x):
+    def forward(self, x, attn_mask=None):
+        if attn_mask is not None:
+            raise NotImplementedError
         if self.channel_first:
             og_shape = x.shape
             x = self.to_channel_last(x)
