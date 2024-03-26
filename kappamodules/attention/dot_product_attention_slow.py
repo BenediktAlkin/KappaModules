@@ -50,7 +50,8 @@ class DotProductAttentionSlow(nn.Module):
         if self.init_last_proj_zero:
             nn.init.zeros_(self.proj.weight)
 
-    def forward(self, x):
+    def forward(self, x, attn_mask=None):
+        assert attn_mask is None
         B, N, C = x.shape
         qkv = self.qkv(x).reshape(B, N, 3, self.num_heads, self.head_dim).permute(2, 0, 3, 1, 4)
         q, k, v = qkv.unbind(0)
