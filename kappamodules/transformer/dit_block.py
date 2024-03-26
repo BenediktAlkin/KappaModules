@@ -2,7 +2,7 @@ from functools import partial
 
 from torch import nn
 
-from kappamodules.attention import DotProductAttention1d, DotProductAttentionSlow
+from kappamodules.attention import DotProductAttention1d
 from kappamodules.init import init_norms_as_noaffine
 from kappamodules.layers import DropPath
 from kappamodules.modulation import Dit
@@ -21,7 +21,7 @@ class DitBlock(nn.Module):
             cond_dim=None,
             qkv_bias=True,
             drop_path=0.,
-            use_flash_attention=True,
+            attn_ctor=DotProductAttention1d,
             eps=1e-6,
             init_weights="xavier_uniform",
             init_norms="nonaffine",
@@ -47,7 +47,6 @@ class DitBlock(nn.Module):
         )
         # attn
         self.norm1 = norm_ctor(dim, eps=eps)
-        attn_ctor = DotProductAttention1d if use_flash_attention else DotProductAttentionSlow
         self.attn = attn_ctor(
             dim=dim,
             num_heads=num_heads,

@@ -14,7 +14,7 @@ class TestUnetDenoisingDiffusion(unittest.TestCase):
         x = torch.randn(2, num_channels, seqlen)
         y = model(x)
         self.assertEqual(x.shape, y.shape)
-        self.assertTrue(torch.isclose(y.mean(), torch.tensor(0.22751933336257935)))
+        self.assertTrue(torch.isclose(y.mean(), torch.tensor(-0.04462967440485954)))
 
     def test_1d_cond(self):
         torch.manual_seed(9823)
@@ -34,7 +34,7 @@ class TestUnetDenoisingDiffusion(unittest.TestCase):
         cond = torch.randn(2, 4)
         y = model(x, cond=cond)
         self.assertEqual(x.shape, y.shape)
-        self.assertTrue(torch.isclose(y.mean(), torch.tensor(0.54554283618927)))
+        self.assertTrue(torch.isclose(y.mean(), torch.tensor(0.3150939643383026)))
 
     def test_2d_cond_noattn(self):
         torch.manual_seed(9823)

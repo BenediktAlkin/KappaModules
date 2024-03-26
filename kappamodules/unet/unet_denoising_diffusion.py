@@ -4,12 +4,15 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from kappamodules.attention.dot_product_attention import (
+from kappamodules.attention import (
     DotProductAttention3d,
     DotProductAttention2d,
     DotProductAttention1d,
+    LinformerAttention1d,
+    LinformerAttention2d,
+    LinformerAttention3d,
 )
-from kappamodules.attention.linear_attention import LinearAttention1d, LinearAttention3d, LinearAttention2d
+from kappamodules.attention import EfficientAttention1d, EfficientAttention3d, EfficientAttention2d
 from kappamodules.layers import Identity, RMSNorm
 from kappamodules.modulation import Film
 
@@ -93,15 +96,15 @@ class UnetDenoisingDiffusion(nn.Module):
         # create ctors
         if ndim == 1:
             conv_ctor = nn.Conv1d
-            linear_attn_ctor = LinearAttention1d
+            linear_attn_ctor = EfficientAttention1d
             dot_product_attn_ctor = DotProductAttention1d
         elif ndim == 2:
             conv_ctor = nn.Conv2d
-            linear_attn_ctor = LinearAttention2d
+            linear_attn_ctor = EfficientAttention2d
             dot_product_attn_ctor = DotProductAttention2d
         elif ndim == 3:
             conv_ctor = nn.Conv3d
-            linear_attn_ctor = LinearAttention3d
+            linear_attn_ctor = EfficientAttention3d
             dot_product_attn_ctor = DotProductAttention3d
         else:
             raise NotImplementedError
