@@ -3,9 +3,10 @@ from torch import nn
 
 
 class VitClassTokens(nn.Module):
-    def __init__(self, dim: int, num_tokens: int = 1):
+    def __init__(self, dim: int, num_tokens: int = 1, init_std=0.02):
         super().__init__()
         self.num_tokens = num_tokens
+        self.init_std = init_std
         if num_tokens > 0:
             self.tokens = nn.Parameter(torch.zeros(1, num_tokens, dim))
         else:
@@ -14,7 +15,7 @@ class VitClassTokens(nn.Module):
 
     def reset_parameters(self):
         if self.num_tokens > 0:
-            nn.init.normal_(self.tokens, std=.02)
+            nn.init.normal_(self.tokens, std=self.init_std)
 
     def forward(self, x):
         if self.num_tokens == 0:

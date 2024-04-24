@@ -2,6 +2,7 @@ import einops
 import numpy as np
 from torch import nn
 
+from kappamodules.init import init_truncnormal_zero_bias
 from kappamodules.utils.param_checking import to_ntuple
 
 
@@ -36,6 +37,8 @@ class VitPatchEmbed(nn.Module):
             w = self.proj.weight.data
             nn.init.xavier_uniform_(w.view([w.shape[0], -1]))
             nn.init.zeros_(self.proj.bias)
+        elif self.init_weights in ["truncnormal", "truncnormal002"]:
+            self.apply(init_truncnormal_zero_bias)
         else:
             raise NotImplementedError
 
