@@ -32,10 +32,7 @@ class AsyncBatchNorm(nn.Module):
         self.gradient_accumulation_steps = gradient_accumulation_steps or os.environ.get("GRAD_ACC_STEPS", None) or 1
         assert self.gradient_accumulation_steps > 0
         self.register_buffer("mean", torch.zeros(dim))
-        if whiten:
-            self.register_buffer("var", torch.ones(dim))
-        else:
-            self.var = None
+        self.register_buffer("var", torch.ones(dim))
         self.batchsize_buffer = []
         self.mean_buffer = []
         self.var_buffer = []
@@ -149,7 +146,7 @@ class AsyncBatchNorm(nn.Module):
         x = F.batch_norm(
             input=x,
             running_mean=self.mean,
-            running_var=self.var if self.whiten else torch.ones_like(self.mean),
+            running_var=self.var,
             weight=self.weight,
             bias=self.bias,
             eps=self.eps if self.whiten else 0,
