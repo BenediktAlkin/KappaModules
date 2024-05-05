@@ -32,6 +32,13 @@ class TestAsyncBatchNorm(unittest.TestCase):
         y.mean().backward()
         self.assertEqual(x.shape, y.shape)
 
+    def test_abn_backward_nowhiten(self):
+        x = torch.rand(size=(3, 10), generator=torch.Generator().manual_seed(843))
+        asb = AsyncBatchNorm(dim=10, whiten=False)
+        y = asb(x)
+        y.mean().backward()
+        self.assertEqual(x.shape, y.shape)
+
     def test_convert_nostats(self):
         syncbn = nn.Sequential(nn.Linear(5, 10), nn.BatchNorm1d(10))
         asyncbn = AsyncBatchNorm.convert_async_batchnorm(syncbn)
