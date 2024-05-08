@@ -22,6 +22,7 @@ class AsyncBatchNorm(nn.Module):
             eps=1e-5,
             gradient_accumulation_steps=None,
             whiten=True,
+            channel_first=False,
     ):
         super().__init__()
         self.dim = dim
@@ -29,6 +30,7 @@ class AsyncBatchNorm(nn.Module):
         self.affine = affine
         self.whiten = whiten
         self.eps = eps
+        self.channel_first = channel_first
         self.gradient_accumulation_steps = gradient_accumulation_steps or os.environ.get("GRAD_ACC_STEPS", None) or 1
         assert self.gradient_accumulation_steps > 0
         self.register_buffer("mean", torch.zeros(dim))
@@ -47,11 +49,20 @@ class AsyncBatchNorm(nn.Module):
 
     def _x_to_stats(self, x):
         # handles all use-cases
+        # channel_first
         # - x.ndim == 2 (dim,) -> average over dim=[0]
         # - x.ndim == 3 (dim, height) -> average over dim=[0, 2]
         # - x.ndim == 4 (dim, height, width) -> average over dim=[0, 2, 3]
         # - x.ndim == 5 (dim, height, width, depth) -> average over dim=[0, 2, 3, 4]
-        x = einops.rearrange(x, "bs dim ... -> (bs ...) dim")
+        # channel_last
+        # - x.ndim == 2 (dim,) -> average over dim=[0]
+        # - x.ndim == 3 (height, dim) -> average over dim=[0, 1]
+        # - x.ndim == 4 (height, width, dim) -> average over dim=[0, 1, 2]
+        # - x.ndim == 5 (height, width, depth, dim) -> average over dim=[0, 1, 2, 3]
+        if self.channel_first:
+            x = einops.rearrange(x, "bs dim ... -> (bs ...) dim")
+        else:
+            x = einops.rearrange(x, "bs ... dim -> (bs ...) dim")
         mean = x.mean(dim=0)
         if self.whiten:
             var = x.var(dim=0, unbiased=False)
