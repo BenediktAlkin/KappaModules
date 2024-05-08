@@ -142,6 +142,7 @@ class AsyncBatchNorm(nn.Module):
                 assert self._async_handle is None
                 tensor_list = [torch.zeros_like(x) for _ in range(dist.get_world_size())]
                 self._async_handle = dist.all_gather(tensor_list, x, async_op=True)
+                print("queue async")
 
         # normalize
         og_x = x
