@@ -154,6 +154,8 @@ class AsyncBatchNorm(nn.Module):
 
         # normalize
         og_x = x
+        if not self.channel_first:
+            x = einops.rearrange(x, "bs ... dim -> bs dim ...")
         x = F.batch_norm(
             input=x,
             running_mean=self.mean,
@@ -164,6 +166,8 @@ class AsyncBatchNorm(nn.Module):
             # avoid updating mean/var
             training=False,
         )
+        if not self.channel_first:
+            x = einops.rearrange(x, "bs dim ... -> bs ... dim")
 
         # single GPU -> directly update stats
         if self.training and not dist.is_initialized():
