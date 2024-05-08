@@ -211,13 +211,13 @@ class AsyncBatchNorm3d(AsyncBatchNorm):
 def main_single(rank, world_size):
     if rank == 0:
         print(f"world_size: {world_size}")
-    x = torch.rand(4, 5, generator=torch.manual_seed(843), requires_grad=True)
+    x = torch.rand(128, 65536, generator=torch.manual_seed(843), requires_grad=True)
     assert len(x) % 2 == 0
     if world_size == 2:
         n = len(x) // 2
         x = x[rank * n:rank * n + n]
         assert len(x) == n
-    abn = AsyncBatchNorm(dim=x.size(1), affine=False, whiten=False)
+    abn = AsyncBatchNorm(dim=65536, affine=False, whiten=False)
     for i in range(3):
         with torch.no_grad():
             y = abn(x)
