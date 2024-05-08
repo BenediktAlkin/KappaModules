@@ -133,6 +133,7 @@ class AsyncBatchNorm(nn.Module):
                 raise NotImplementedError("AsyncBatchNorm batch_size=1 requires syncing features instead of stats")
 
         # multi GPU -> queue communication of batch stats
+        print("forward")
         if dist.is_initialized():
             print("dist.is_initialized")
             # update stats for previous iteration
