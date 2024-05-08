@@ -219,7 +219,8 @@ def main_single(rank, world_size):
         assert len(x) == n
     abn = AsyncBatchNorm(dim=x.size(1), affine=False, whiten=False)
     for i in range(3):
-        y = abn(x)
+        with torch.no_grad():
+            y = abn(x)
         if rank == 0:
             print(f"{i} y   : {y[[0]]}")
             # print(f"{i} mean: {abn.mean}")
