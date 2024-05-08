@@ -116,6 +116,7 @@ class AsyncBatchNorm(nn.Module):
         # update stats
         if inplace:
             # if used in nograd environment -> inplace
+            print(f"{self.mean.shape} {mean.shape}")
             self.mean.mul_(self.momentum).add_(mean, alpha=1. - self.momentum)
             if self.whiten:
                 self.var.mul_(self.momentum).add_(var, alpha=1. - self.momentum)
