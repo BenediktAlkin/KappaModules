@@ -22,7 +22,7 @@ class AsyncBatchNorm(nn.Module):
             eps=1e-5,
             gradient_accumulation_steps=None,
             whiten=True,
-            channel_first=False,
+            channel_first=True,
     ):
         super().__init__()
         self.dim = dim
