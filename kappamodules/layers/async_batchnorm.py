@@ -134,6 +134,7 @@ class AsyncBatchNorm(nn.Module):
 
         # multi GPU -> queue communication of batch stats
         if dist.is_initialized():
+            print("dist.is_initialized")
             # update stats for previous iteration
             if self._async_handle is not None:
                 self._update_stats(inplace=True)
@@ -159,6 +160,7 @@ class AsyncBatchNorm(nn.Module):
 
         # single GPU -> directly update stats
         if self.training and not dist.is_initialized():
+            print("single gpu")
             with torch.no_grad():
                 self.batchsize_buffer.append(len(og_x))
                 xmean, xvar = self._x_to_stats(og_x)
