@@ -114,6 +114,7 @@ class AsyncBatchNorm(nn.Module):
         self.mean_buffer.clear()
         self.var_buffer.clear()
         # update stats
+        print("update_stats")
         if inplace:
             # if used in nograd environment -> inplace
             print(f"{self.mean.shape} {mean.shape}")
