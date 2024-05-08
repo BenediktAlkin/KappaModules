@@ -114,10 +114,8 @@ class AsyncBatchNorm(nn.Module):
         self.mean_buffer.clear()
         self.var_buffer.clear()
         # update stats
-        print("update_stats")
         if inplace:
             # if used in nograd environment -> inplace
-            print(f"{self.mean.shape} {mean.shape}")
             self.mean.mul_(self.momentum).add_(mean, alpha=1. - self.momentum)
             if self.whiten:
                 self.var.mul_(self.momentum).add_(var, alpha=1. - self.momentum)
@@ -133,9 +131,7 @@ class AsyncBatchNorm(nn.Module):
                 raise NotImplementedError("AsyncBatchNorm batch_size=1 requires syncing features instead of stats")
 
         # multi GPU -> queue communication of batch stats
-        print("forward")
         if dist.is_initialized():
-            print("dist.is_initialized")
             # update stats for previous iteration
             if self._async_handle is not None:
                 self._update_stats(inplace=True)
@@ -144,7 +140,6 @@ class AsyncBatchNorm(nn.Module):
                 assert self._async_handle is None
                 tensor_list = [torch.zeros_like(x) for _ in range(dist.get_world_size())]
                 self._async_handle = dist.all_gather(tensor_list, x, async_op=True)
-                print("queue async")
 
         # normalize
         og_x = x
@@ -161,7 +156,6 @@ class AsyncBatchNorm(nn.Module):
 
         # single GPU -> directly update stats
         if self.training and not dist.is_initialized():
-            print("single gpu")
             with torch.no_grad():
                 self.batchsize_buffer.append(len(og_x))
                 xmean, xvar = self._x_to_stats(og_x)
