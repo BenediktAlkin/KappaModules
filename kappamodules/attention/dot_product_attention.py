@@ -40,7 +40,8 @@ class DotProductAttention(nn.Module):
             self.rel_pos_idx = None
         elif rel_pos_bias == "learnable":
             assert seqlens is not None
-            self.rel_pos_idx, num_distinct_distances = relative_position_indices(seqlens=seqlens, num_aux_tokens=1)
+            rel_pos_idx, num_distinct_distances = relative_position_indices(seqlens=seqlens, num_aux_tokens=1)
+            self.register_buffer("rel_pos_idx", rel_pos_idx)
             self.rel_pos_bias_table = nn.Parameter(torch.empty(num_distinct_distances, num_heads))
         else:
             raise NotImplementedError
