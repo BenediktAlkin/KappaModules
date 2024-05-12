@@ -122,7 +122,7 @@ def relative_position_indices(seqlens, num_aux_tokens):
     num_distinct_distances = (2 * seqlen0 - 1) * (2 * seqlen1 - 1) + 3
 
     # create indices (2, seqlen0, seqlen1)
-    abs_coords = torch.stack(torch.meshgrid([torch.arange(seqlen0), torch.arange(seqlen1)]))
+    abs_coords = torch.stack(torch.meshgrid([torch.arange(seqlen0), torch.arange(seqlen1)], indexing="ij"))
     abs_coords_flat = einops.rearrange(abs_coords, "ndim ... -> ndim (...)")
     # abs to rel: (2, seqlen0 * seqlen1) -> (2, seqlen0 * seqlen1, seqlen0 * seqlen1)
     rel_coords = abs_coords_flat[:, :, None] - abs_coords_flat[:, None, :]
