@@ -48,7 +48,7 @@ class VitClassTokens(nn.Module):
         if self.num_tokens == 0:
             raise NotImplementedError
         if self.location == "first":
-            x = einops.rearrange(x[:, :self.num_tokens], "batchsize seqlen dim -> batchsize (seqlen dim)")
+            x = x[:, :self.num_tokens]
         elif self.location == "middle":
             middle = x.size(1) // 2
             half_num_tokens = self.num_tokens // 2
@@ -57,4 +57,4 @@ class VitClassTokens(nn.Module):
             x = x[:, start:end]
         else:
             raise NotImplementedError
-        return x
+        return x.flatten(start_dim=1)
