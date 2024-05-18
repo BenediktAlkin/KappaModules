@@ -43,7 +43,8 @@ class VitPatchEmbed(nn.Module):
             raise NotImplementedError
 
     def forward(self, x):
-        assert all(x.size(i + 2) % self.patch_size[i] == 0 for i in range(self.ndim))
+        assert all(x.size(i + 2) % self.patch_size[i] == 0 for i in range(self.ndim)), \
+            f"x.shape={x.shape} incompatible with patch_size={self.patch_size}"
         x = self.proj(x)
         x = einops.rearrange(x, "b c ... -> b ... c")
         return x
