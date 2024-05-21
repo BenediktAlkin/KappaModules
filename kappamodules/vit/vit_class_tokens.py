@@ -4,11 +4,12 @@ from torch import nn
 
 
 class VitClassTokens(nn.Module):
-    def __init__(self, dim: int, num_tokens: int = 1, location="first", init_std=0.02):
+    def __init__(self, dim: int, num_tokens: int = 1, location="first", init_std=0.02, aggregate="concat"):
         super().__init__()
         self.location = location
         self.num_tokens = num_tokens
         self.init_std = init_std
+        self.aggregate = aggregate
         if num_tokens > 0:
             if location in ["first", "middle", "last"]:
                 self.tokens = nn.Parameter(torch.zeros(1, num_tokens, dim))
@@ -70,6 +71,8 @@ class VitClassTokens(nn.Module):
     def pool(self, x):
         if self.num_tokens == 0:
             raise NotImplementedError
+
+        # extract tokens
         if self.location == "first":
             x = x[:, :self.num_tokens]
         elif self.location == "middle":
@@ -87,4 +90,11 @@ class VitClassTokens(nn.Module):
             x = torch.stack([x[:, (i + 1) * chunk_size + i] for i in range(self.num_tokens)], dim=1)
         else:
             raise NotImplementedError
-        return x.flatten(start_dim=1)
+
+        # aggregate if multiple tokens are used
+        if self.aggregate == "concat":
+            return x.flatten(start_dim=1)
+        elif self.aggregate in ["mean", "average", "avg"]:
+            return x.mean(dim=1)
+        else:
+            raise NotImplementedError

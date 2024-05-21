@@ -43,6 +43,15 @@ class TestVitClassToken(unittest.TestCase):
         self.assertTrue(torch.all(y[:, 0] == first))
         self.assertTrue(torch.all(y[:, -1] == last))
 
+    def test_firstandlast_vit_mean(self):
+        torch.manual_seed(0)
+        x = torch.randn(2, 196, 3)
+        cls_token = VitClassTokens(dim=3, num_tokens=2, location="first_and_last", aggregate="mean")
+        y = cls_token(x)
+        expected = cls_token.tokens.mean(dim=1).expand(len(y), -1)
+        actual = cls_token.pool(y)
+        self.assertTrue(torch.all(actual == expected))
+
     def test_uniform_vit(self):
         torch.manual_seed(0)
         x = torch.randn(2, 196, 3)
