@@ -4,8 +4,9 @@ from torch import nn
 
 
 class VitClassTokens(nn.Module):
-    def __init__(self, dim: int, num_tokens: int = 1, location="first", init_std=0.02, aggregate="concat"):
+    def __init__(self, dim: int, num_tokens: int = 1, location="first", init_std=0.02, aggregate="flatten"):
         super().__init__()
+        self.dim = dim
         self.location = location
         self.num_tokens = num_tokens
         self.init_std = init_std
@@ -57,6 +58,14 @@ class VitClassTokens(nn.Module):
             raise NotImplementedError
         return x
 
+    @property
+    def output_shape(self):
+        if self.aggregate == "flatten":
+            return self.dim * self.num_tokens
+        if self.aggregate == "mean":
+            return self.dim
+        raise NotImplementedError
+
     def split(self, x):
         if self.num_tokens == 0:
             return None, x
@@ -92,9 +101,9 @@ class VitClassTokens(nn.Module):
             raise NotImplementedError
 
         # aggregate if multiple tokens are used
-        if self.aggregate == "concat":
+        if self.aggregate == "flatten":
             return x.flatten(start_dim=1)
-        elif self.aggregate in ["mean", "average", "avg"]:
+        elif self.aggregate == "mean":
             return x.mean(dim=1)
         else:
             raise NotImplementedError
