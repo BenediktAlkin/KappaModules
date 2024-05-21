@@ -14,7 +14,7 @@ class VitClassTokens(nn.Module):
         if num_tokens > 0:
             if location in ["first", "middle", "last"]:
                 self.tokens = nn.Parameter(torch.zeros(1, num_tokens, dim))
-            elif location == "first_and_last":
+            elif location == "bilateral":
                 assert num_tokens % 2 == 0
                 self.tokens = nn.Parameter(torch.zeros(1, num_tokens, dim))
             elif location == "uniform":
@@ -40,7 +40,7 @@ class VitClassTokens(nn.Module):
             tokens = self.tokens.expand(len(x), -1, -1)
             pre, post = x.chunk(chunks=2, dim=1)
             x = torch.concat([pre, tokens, post], dim=1)
-        elif self.location == "first_and_last":
+        elif self.location == "bilateral":
             first, last = self.tokens.chunk(chunks=2, dim=1)
             first = first.expand(len(x), -1, -1)
             last = last.expand(len(x), -1, -1)
@@ -80,30 +80,30 @@ class VitClassTokens(nn.Module):
     def pool(self, x):
         if self.num_tokens == 0:
             raise NotImplementedError
-
-        # extract tokens
-        if self.location == "first":
-            x = x[:, :self.num_tokens]
-        elif self.location == "middle":
-            middle = x.size(1) // 2
-            half_num_tokens = self.num_tokens // 2
-            start = middle - half_num_tokens
-            end = start + self.num_tokens
-            x = x[:, start:end]
-        elif self.location == "first_and_last":
-            num_tokens_half = self.num_tokens // 2
-            x = torch.concat([x[:, :num_tokens_half], x[:, -num_tokens_half:]], dim=1)
-        elif self.location == "uniform":
-            # all but the last chunk are full
-            chunk_size = (x.size(1) - self.num_tokens) // (self.num_tokens + 1) + 1
-            x = torch.stack([x[:, (i + 1) * chunk_size + i] for i in range(self.num_tokens)], dim=1)
         else:
-            raise NotImplementedError
+            # extract tokens
+            if self.location == "first":
+                x = x[:, :self.num_tokens]
+            elif self.location == "middle":
+                middle = x.size(1) // 2
+                half_num_tokens = self.num_tokens // 2
+                start = middle - half_num_tokens
+                end = start + self.num_tokens
+                x = x[:, start:end]
+            elif self.location == "bilateral":
+                num_tokens_half = self.num_tokens // 2
+                x = torch.concat([x[:, :num_tokens_half], x[:, -num_tokens_half:]], dim=1)
+            elif self.location == "uniform":
+                # all but the last chunk are full
+                chunk_size = (x.size(1) - self.num_tokens) // (self.num_tokens + 1) + 1
+                x = torch.stack([x[:, (i + 1) * chunk_size + i] for i in range(self.num_tokens)], dim=1)
+            else:
+                raise NotImplementedError
 
-        # aggregate if multiple tokens are used
-        if self.aggregate == "flatten":
-            return x.flatten(start_dim=1)
-        elif self.aggregate == "mean":
-            return x.mean(dim=1)
-        else:
-            raise NotImplementedError
+            # aggregate if multiple tokens are used
+            if self.aggregate == "flatten":
+                return x.flatten(start_dim=1)
+            elif self.aggregate == "mean":
+                return x.mean(dim=1)
+            else:
+                raise NotImplementedError
