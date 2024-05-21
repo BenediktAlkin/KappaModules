@@ -61,9 +61,9 @@ class VitClassTokens(nn.Module):
     @property
     def output_shape(self):
         if self.aggregate == "flatten":
-            return self.dim * self.num_tokens
+            return self.dim * self.num_tokens,
         if self.aggregate == "mean":
-            return self.dim
+            return self.dim,
         raise NotImplementedError
 
     def split(self, x):
