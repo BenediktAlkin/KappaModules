@@ -33,3 +33,27 @@ class TestVitClassToken(unittest.TestCase):
         pooled = cls_token.pool(y)
         self.assertTrue(torch.all(einops.repeat(cls_token.tokens, "1 1 dim -> bs dim", bs=len(x)) == pooled))
         self.assertTrue(torch.all(y[:, 98] == pooled))
+
+    def test_firstandlast_vit(self):
+        torch.manual_seed(0)
+        x = torch.randn(2, 196, 3)
+        cls_token = VitClassTokens(dim=3, num_tokens=2, location="first_and_last")
+        y = cls_token(x)
+        first, last = cls_token.pool(y).chunk(chunks=2, dim=1)
+        self.assertTrue(torch.all(y[:, 0] == first))
+        self.assertTrue(torch.all(y[:, -1] == last))
+
+    def test_uniform_vit(self):
+        torch.manual_seed(0)
+        x = torch.randn(2, 196, 3)
+        cls_token = VitClassTokens(dim=3, num_tokens=4, location="uniform")
+        y = cls_token(x)
+        pooled = cls_token.pool(y)
+        rep_tokens = einops.repeat(cls_token.tokens, "1 num_tokens dim -> bs (num_tokens dim)", bs=len(x))
+        self.assertTrue(torch.all(rep_tokens == pooled))
+        cls0, cls1, cls2, cls3 = pooled.chunk(chunks=4, dim=1)
+        self.assertTrue(torch.all(y[:, 40] == cls0))
+        self.assertTrue(torch.all(y[:, 81] == cls1))
+        self.assertTrue(torch.all(y[:, 122] == cls2))
+        self.assertTrue(torch.all(y[:, 163] == cls3))
+
