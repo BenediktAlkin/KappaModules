@@ -25,6 +25,15 @@ class TestVitClassToken(unittest.TestCase):
         self.assertTrue(torch.all(einops.repeat(cls_token.tokens, "1 1 dim -> bs dim", bs=len(x)) == pooled))
         self.assertTrue(torch.all(y[:, 2] == pooled))
 
+    def test_last(self):
+        torch.manual_seed(0)
+        x = torch.randn(2, 4, 3)
+        cls_token = VitClassTokens(dim=3, num_tokens=1, location="last")
+        y = cls_token(x)
+        pooled = cls_token.pool(y)
+        self.assertTrue(torch.all(einops.repeat(cls_token.tokens, "1 1 dim -> bs dim", bs=len(x)) == pooled))
+        self.assertTrue(torch.all(y[:, -1] == pooled))
+
     def test_middle_vit(self):
         torch.manual_seed(0)
         x = torch.randn(2, 196, 3)

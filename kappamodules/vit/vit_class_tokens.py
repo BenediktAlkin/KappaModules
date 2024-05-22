@@ -40,6 +40,9 @@ class VitClassTokens(nn.Module):
             tokens = self.tokens.expand(len(x), -1, -1)
             pre, post = x.chunk(chunks=2, dim=1)
             x = torch.concat([pre, tokens, post], dim=1)
+        elif self.location == "last":
+            tokens = self.tokens.expand(len(x), -1, -1)
+            x = torch.concat([x, tokens], dim=1)
         elif self.location == "bilateral":
             first, last = self.tokens.chunk(chunks=2, dim=1)
             first = first.expand(len(x), -1, -1)
@@ -90,6 +93,8 @@ class VitClassTokens(nn.Module):
                 start = middle - half_num_tokens
                 end = start + self.num_tokens
                 x = x[:, start:end]
+            elif self.location == "last":
+                x = x[:, -self.num_tokens:]
             elif self.location == "bilateral":
                 num_tokens_half = self.num_tokens // 2
                 x = torch.concat([x[:, :num_tokens_half], x[:, -num_tokens_half:]], dim=1)
