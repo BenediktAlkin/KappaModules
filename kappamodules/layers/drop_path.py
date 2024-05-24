@@ -20,10 +20,22 @@ class DropPath(nn.Sequential):
     def __init__(self, *args, drop_prob: float = 0., scale_by_keep: bool = True, stochastic_drop_prob: bool = False):
         super().__init__(*args)
         assert 0. <= drop_prob < 1.
-        self.drop_prob = drop_prob
-        self.keep_prob = 1. - drop_prob
+        self._drop_prob = drop_prob
         self.scale_by_keep = scale_by_keep
         self.stochastic_drop_prob = stochastic_drop_prob
+
+    @property
+    def drop_prob(self):
+        return self._drop_prob
+
+    @drop_prob.setter
+    def drop_prob(self, value):
+        assert 0. <= value < 1.
+        self._drop_prob = value
+
+    @property
+    def keep_prob(self):
+        return 1. - self.drop_prob
 
     def forward(self, x, residual_path=None, residual_path_kwargs=None):
         assert (len(self) == 0) ^ (residual_path is None)
