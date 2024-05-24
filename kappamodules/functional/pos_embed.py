@@ -109,3 +109,37 @@ def interpolate_sincos(embed, seqlens, mode="bicubic"):
     )
     embed = einops.rearrange(embed, "1 dim ... -> 1 ... dim")
     return embed
+
+
+def relative_position_indices(seqlens, num_aux_tokens):
+    """ creates a bias for each relative distance """
+    assert len(seqlens) == 2
+    assert num_aux_tokens == 1
+
+    seqlen0, seqlen1 = seqlens
+    # position to position bias: (2 * seqlen0 - 1) * (2 * seqlen1 - 1)
+    # 3 interaction types with cls: cls to cls, cls to patch, patch to cls
+    num_distinct_distances = (2 * seqlen0 - 1) * (2 * seqlen1 - 1) + 3
+
+    # create indices (2, seqlen0, seqlen1)
+    abs_coords = torch.stack(torch.meshgrid([torch.arange(seqlen0), torch.arange(seqlen1)], indexing="ij"))
+    abs_coords_flat = einops.rearrange(abs_coords, "ndim ... -> ndim (...)")
+    # abs to rel: (2, seqlen0 * seqlen1) -> (2, seqlen0 * seqlen1, seqlen0 * seqlen1)
+    rel_coords = abs_coords_flat[:, :, None] - abs_coords_flat[:, None, :]
+    rel_coords = einops.rearrange(rel_coords, "ndim ... -> ... ndim").contiguous()
+    rel_coords[:, :, 0] += seqlen0 - 1  # shift to start from 0
+    rel_coords[:, :, 1] += seqlen1 - 1
+    rel_coords[:, :, 0] *= 2 * seqlen1 - 1
+
+    # create indices for looking up positional bias from table
+    rel_pos_index = rel_coords.new_zeros(size=(seqlen0 * seqlen1 + 1, seqlen0 * seqlen1 + 1))
+    # patch to patch
+    rel_pos_index[1:, 1:] = rel_coords.sum(-1)
+    # cls to cls
+    rel_pos_index[0, 0] = num_distinct_distances - 1
+    # cls to patch
+    rel_pos_index[0:, 0] = num_distinct_distances - 2
+    # patch to cls
+    rel_pos_index[0, 0:] = num_distinct_distances - 3
+
+    return rel_pos_index, num_distinct_distances

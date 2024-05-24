@@ -3,7 +3,7 @@ import unittest
 import einops
 import torch
 
-from kappamodules.functional.pos_embed import get_sincos_pos_embed_from_seqlens
+from kappamodules.functional.pos_embed import get_sincos_pos_embed_from_seqlens, relative_position_indices
 from original_modules.mae_pos_embed import get_2d_sincos_pos_embed
 
 
@@ -53,3 +53,31 @@ class TestPosEmbed(unittest.TestCase):
         pos_embed_og = pos_embed_og.reshape(3, 4, 16).float()
         pos_embed = get_sincos_pos_embed_from_seqlens(seqlens=(3, 4), dim=16, indexing="xy")
         self.assertTrue(torch.all(pos_embed == pos_embed_og))
+
+    def test_relative_position_indices_5x5cls(self):
+        seqlens = (5, 5)
+        # [0, 0]: cls-cls
+        # first row: cls-patch
+        # first column: patch-cls
+        expected = [
+            [51, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49],
+            [50, 24, 23, 22, 21, 17, 16, 15, 14, 10, 9, 8, 7, 3, 2, 1, 0],
+            [50, 25, 24, 23, 22, 18, 17, 16, 15, 11, 10, 9, 8, 4, 3, 2, 1],
+            [50, 26, 25, 24, 23, 19, 18, 17, 16, 12, 11, 10, 9, 5, 4, 3, 2],
+            [50, 27, 26, 25, 24, 20, 19, 18, 17, 13, 12, 11, 10, 6, 5, 4, 3],
+            [50, 31, 30, 29, 28, 24, 23, 22, 21, 17, 16, 15, 14, 10, 9, 8, 7],
+            [50, 32, 31, 30, 29, 25, 24, 23, 22, 18, 17, 16, 15, 11, 10, 9, 8],
+            [50, 33, 32, 31, 30, 26, 25, 24, 23, 19, 18, 17, 16, 12, 11, 10, 9],
+            [50, 34, 33, 32, 31, 27, 26, 25, 24, 20, 19, 18, 17, 13, 12, 11, 10],
+            [50, 38, 37, 36, 35, 31, 30, 29, 28, 24, 23, 22, 21, 17, 16, 15, 14],
+            [50, 39, 38, 37, 36, 32, 31, 30, 29, 25, 24, 23, 22, 18, 17, 16, 15],
+            [50, 40, 39, 38, 37, 33, 32, 31, 30, 26, 25, 24, 23, 19, 18, 17, 16],
+            [50, 41, 40, 39, 38, 34, 33, 32, 31, 27, 26, 25, 24, 20, 19, 18, 17],
+            [50, 45, 44, 43, 42, 38, 37, 36, 35, 31, 30, 29, 28, 24, 23, 22, 21],
+            [50, 46, 45, 44, 43, 39, 38, 37, 36, 32, 31, 30, 29, 25, 24, 23, 22],
+            [50, 47, 46, 45, 44, 40, 39, 38, 37, 33, 32, 31, 30, 26, 25, 24, 23],
+            [50, 48, 47, 46, 45, 41, 40, 39, 38, 34, 33, 32, 31, 27, 26, 25, 24],
+        ]
+        actual, num_distinct_distances = relative_position_indices(seqlens=seqlens, num_aux_tokens=1)
+        self.assertTrue(expected, actual.tolist())
+        self.assertTrue(num_distinct_distances, 84)

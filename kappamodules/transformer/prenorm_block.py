@@ -4,7 +4,7 @@ from torch import nn
 
 from kappamodules.attention import DotProductAttention1d
 from kappamodules.init.functional import init_norms_as_noaffine
-from kappamodules.layers import DropPath
+from kappamodules.layers import DropPath, LayerScale
 from .mlp import Mlp
 
 
@@ -19,6 +19,7 @@ class PrenormBlock(nn.Module):
             act_ctor=nn.GELU,
             norm_ctor=nn.LayerNorm,
             attn_ctor=DotProductAttention1d,
+            layerscale=None,
             eps=1e-6,
             init_weights="xavier_uniform",
             init_norms="nonaffine",
@@ -35,6 +36,7 @@ class PrenormBlock(nn.Module):
             init_weights=init_weights,
             init_last_proj_zero=init_last_proj_zero,
         )
+        self.ls1 = nn.Identity() if layerscale is None else LayerScale(dim, init_scale=layerscale)
         self.drop_path1 = DropPath(drop_prob=drop_path)
         self.norm2 = norm_ctor(dim, eps=eps)
         self.mlp = Mlp(
@@ -44,6 +46,7 @@ class PrenormBlock(nn.Module):
             init_weights=init_weights,
             init_last_proj_zero=init_last_proj_zero,
         )
+        self.ls2 = nn.Identity() if layerscale is None else LayerScale(dim, init_scale=layerscale)
         self.drop_path2 = DropPath(drop_prob=drop_path)
         self.reset_parameters()
 
@@ -57,10 +60,10 @@ class PrenormBlock(nn.Module):
             raise NotImplementedError
 
     def _attn_residual_path(self, x, attn_mask):
-        return self.attn(self.norm1(x), attn_mask=attn_mask)
+        return self.ls1(self.attn(self.norm1(x), attn_mask=attn_mask))
 
     def _mlp_residual_path(self, x):
-        return self.mlp(self.norm2(x))
+        return self.ls2(self.mlp(self.norm2(x)))
 
     def forward(self, x, attn_mask=None):
         x = self.drop_path1(x, partial(self._attn_residual_path, attn_mask=attn_mask))

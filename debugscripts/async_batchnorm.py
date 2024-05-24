@@ -16,7 +16,7 @@ def main_single(rank, world_size):
         n = len(x) // 2
         x = x[rank * n:rank * n + n]
         assert len(x) == n
-    abn = AsyncBatchNorm(dim=x.size(1))
+    abn = AsyncBatchNorm(dim=x.size(1), affine=False, whiten=False)
     for i in range(3):
         y = abn(x)
         if rank == 0:
