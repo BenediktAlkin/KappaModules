@@ -7,12 +7,16 @@ from kappamodules.utils.param_checking import to_ntuple
 
 
 class VitPatchEmbed(nn.Module):
-    def __init__(self, dim, num_channels, resolution, patch_size, init_weights="xavier_uniform"):
+    def __init__(self, dim, num_channels, resolution, patch_size, stride=None, init_weights="xavier_uniform"):
         super().__init__()
         self.resolution = resolution
         self.init_weights = init_weights
         self.ndim = len(resolution)
         self.patch_size = to_ntuple(patch_size, n=self.ndim)
+        if stride is None:
+            self.stride = self.patch_size
+        else:
+            self.strice = to_ntuple(stride, n=self.ndim)
         for i in range(self.ndim):
             assert resolution[i] % self.patch_size[i] == 0, \
                 f"resolution[{i}] % patch_size[{i}] != 0 (resolution={resolution} patch_size={patch_size})"
@@ -29,11 +33,13 @@ class VitPatchEmbed(nn.Module):
         else:
             raise NotImplementedError
 
-        self.proj = conv_ctor(num_channels, dim, kernel_size=patch_size, stride=patch_size)
+        self.proj = conv_ctor(num_channels, dim, kernel_size=self.patch_size, stride=self.stride)
         self.reset_parameters()
 
     def reset_parameters(self):
-        if self.init_weights == "xavier_uniform":
+        if self.init_weights == "torch":
+            pass
+        elif self.init_weights == "xavier_uniform":
             # initialize as nn.Linear
             w = self.proj.weight.data
             nn.init.xavier_uniform_(w.view([w.shape[0], -1]))
