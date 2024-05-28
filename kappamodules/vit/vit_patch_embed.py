@@ -16,7 +16,7 @@ class VitPatchEmbed(nn.Module):
         if stride is None:
             self.stride = self.patch_size
         else:
-            self.strice = to_ntuple(stride, n=self.ndim)
+            self.stride = to_ntuple(stride, n=self.ndim)
         for i in range(self.ndim):
             assert resolution[i] % self.patch_size[i] == 0, \
                 f"resolution[{i}] % patch_size[{i}] != 0 (resolution={resolution} patch_size={patch_size})"
