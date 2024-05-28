@@ -18,3 +18,7 @@ class TestVitPatchEmbed(unittest.TestCase):
         y_og = embed_og(x)
         self.assertEqual((1, 8, 8, 7), y_km.shape)
         self.assertTrue(torch.all(einops.rearrange(y_km, "b ... d -> b (...) d") == y_og))
+
+    def test_num_patches(self):
+        embed = VitPatchEmbed(dim=7, num_channels=2, resolution=(32, 32), patch_size=4, stride=2)
+        self.assertEqual(225, embed.num_patches)

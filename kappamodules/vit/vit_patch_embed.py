@@ -4,7 +4,8 @@ from torch import nn
 
 from kappamodules.init import init_truncnormal_zero_bias
 from kappamodules.utils.param_checking import to_ntuple
-
+import torch.nn.functional as F
+import torch
 
 class VitPatchEmbed(nn.Module):
     def __init__(self, dim, num_channels, resolution, patch_size, stride=None, init_weights="xavier_uniform"):
@@ -21,8 +22,23 @@ class VitPatchEmbed(nn.Module):
             assert resolution[i] % self.patch_size[i] == 0, \
                 f"resolution[{i}] % patch_size[{i}] != 0 (resolution={resolution} patch_size={patch_size})"
         self.seqlens = [resolution[i] // self.patch_size[i] for i in range(self.ndim)]
-        # use primitive type as np.prod gives np.int which can is not compatible with all serialization/logging
-        self.num_patches = int(np.prod(self.seqlens))
+        if self.patch_size == self.stride:
+            # use primitive type as np.prod gives np.int which is not compatible with all serialization/logging
+            self.num_patches = int(np.prod(self.seqlens))
+        else:
+            if self.ndim == 1:
+                conv_func = F.conv1d
+            elif self.ndim == 2:
+                conv_func = F.conv2d
+            elif self.ndim == 3:
+                conv_func = F.conv3d
+            else:
+                raise NotImplementedError
+            self.num_patches = conv_func(
+                input=torch.zeros(1, 1, *resolution),
+                weight=torch.zeros(1, 1, *self.patch_size),
+                stride=self.stride,
+            ).numel()
 
         if self.ndim == 1:
             conv_ctor = nn.Conv1d
