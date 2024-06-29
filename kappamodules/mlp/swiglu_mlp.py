@@ -14,12 +14,16 @@ class SwigluMlp(nn.Module):
             bias=True,
             init_weights="xavier_uniform",
             init_last_proj_zero=False,
+            match_mlp_params=True,
     ):
         super().__init__()
         self.init_weights = init_weights
         self.init_last_proj_zero = init_last_proj_zero
         out_dim = out_dim or in_dim
         hidden_dim = hidden_dim or in_dim
+        if match_mlp_params:
+            # reduce hidden dim to make number of parameters equivalent to a non swiglu MLP
+            hidden_dim = (int(hidden_dim * 2 / 3) + 7) // 8 * 8
         bias1, bias2 = to_2tuple(bias)
 
         self.fc1 = nn.Linear(in_dim, 2 * hidden_dim, bias=bias1)
