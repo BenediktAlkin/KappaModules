@@ -2,7 +2,9 @@ import einops
 import torch
 import torch.nn.functional as F
 from torch import nn
+
 from kappamodules.layers import LinearProjection
+
 
 class CrossAttentionPooling(nn.Module):
     def __init__(
