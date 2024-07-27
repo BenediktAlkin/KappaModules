@@ -8,10 +8,21 @@ import torch.nn.functional as F
 import torch
 
 class VitPatchEmbed(nn.Module):
-    def __init__(self, dim, num_channels, resolution, patch_size, stride=None, init_weights="xavier_uniform"):
+    def __init__(
+            self,
+            dim,
+            num_channels,
+            resolution,
+            patch_size,
+            stride=None,
+            norm_ctor=None,
+            flatten=False,
+            init_weights="xavier_uniform",
+    ):
         super().__init__()
         self.resolution = resolution
         self.init_weights = init_weights
+        self.flatten = flatten
         self.ndim = len(resolution)
         self.patch_size = to_ntuple(patch_size, n=self.ndim)
         if stride is None:
@@ -50,6 +61,7 @@ class VitPatchEmbed(nn.Module):
             raise NotImplementedError
 
         self.proj = conv_ctor(num_channels, dim, kernel_size=self.patch_size, stride=self.stride)
+        self.norm = nn.Identity() if norm_ctor is None else norm_ctor(dim)
         self.reset_parameters()
 
     def reset_parameters(self):
@@ -69,5 +81,9 @@ class VitPatchEmbed(nn.Module):
         assert all(x.size(i + 2) % self.patch_size[i] == 0 for i in range(self.ndim)), \
             f"x.shape={x.shape} incompatible with patch_size={self.patch_size}"
         x = self.proj(x)
-        x = einops.rearrange(x, "b c ... -> b ... c")
+        if self.flatten:
+            x = einops.rearrange(x, "b c ... -> b (...) c")
+        else:
+            x = einops.rearrange(x, "b c ... -> b ... c")
+        x = self.norm(x)
         return x
