@@ -15,6 +15,8 @@ class PrenormBlock(nn.Module):
             num_heads,
             mlp_hidden_dim=None,
             qkv_bias=True,
+            proj_bias=True,
+            mlp_bias=True,
             drop_path=0.,
             act_ctor=nn.GELU,
             norm_ctor=nn.LayerNorm,
@@ -33,6 +35,7 @@ class PrenormBlock(nn.Module):
             dim=dim,
             num_heads=num_heads,
             qkv_bias=qkv_bias,
+            proj_bias=proj_bias,
             init_weights=init_weights,
             init_last_proj_zero=init_last_proj_zero,
         )
@@ -45,6 +48,7 @@ class PrenormBlock(nn.Module):
             act_ctor=act_ctor,
             init_weights=init_weights,
             init_last_proj_zero=init_last_proj_zero,
+            bias=mlp_bias,
         )
         self.ls2 = nn.Identity() if layerscale is None else LayerScale(dim, init_scale=layerscale)
         self.drop_path2 = DropPath(drop_prob=drop_path)

@@ -17,6 +17,7 @@ class DotProductAttention(nn.Module):
             dim,
             num_heads=8,
             qkv_bias=True,
+            proj_bias=True,
             rel_pos_bias="none",
             seqlens=None,
             channel_first=False,
@@ -45,7 +46,7 @@ class DotProductAttention(nn.Module):
             self.rel_pos_bias_table = nn.Parameter(torch.empty(num_distinct_distances, num_heads))
         else:
             raise NotImplementedError
-        self.proj = nn.Linear(dim, dim)
+        self.proj = nn.Linear(dim, dim, bias=proj_bias)
 
         self.reset_parameters()
 
