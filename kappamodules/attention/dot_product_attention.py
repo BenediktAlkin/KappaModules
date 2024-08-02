@@ -91,7 +91,7 @@ class DotProductAttention(nn.Module):
             assert self.rel_pos_idx.shape == (seqlen, seqlen), \
                 f"invalid input seqlen {seqlen} (expected {self.rel_pos_idx.shape[0]})"
             attn_mask = self.rel_pos_bias_table[self.rel_pos_idx.view(-1)].view(*self.rel_pos_idx.shape, -1)
-            attn_mask = einops.rearrange(attn_mask, "... num_heads -> 1 num_heads ...").contiguous()
+            attn_mask = einops.rearrange(attn_mask, "... num_heads -> 1 num_heads ...").contiguous().to(q.dtype)
         x = F.scaled_dot_product_attention(q, k, v, attn_mask=attn_mask)
         x = einops.rearrange(x, "bs num_heads seqlen head_dim -> bs seqlen (num_heads head_dim)")
         x = self.proj(x)
