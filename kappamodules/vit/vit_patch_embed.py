@@ -20,6 +20,8 @@ class VitPatchEmbed(nn.Module):
             init_weights="xavier_uniform",
     ):
         super().__init__()
+        self.dim = dim
+        self.num_channels = num_channels
         self.resolution = resolution
         self.init_weights = init_weights
         self.flatten = flatten
