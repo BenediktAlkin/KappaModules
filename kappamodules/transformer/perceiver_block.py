@@ -69,6 +69,10 @@ class PerceiverBlock(nn.Module):
         return self.mlp(self.norm2(x))
 
     def forward(self, q, kv, attn_mask=None):
-        q = self.drop_path1(q, partial(self._attn_residual_path, kv=kv, attn_mask=attn_mask))
+        q = self.drop_path1(
+            q,
+            residual_path=self._attn_residual_path,
+            residual_path_kwargs=dict(kv=kv, attn_mask=attn_mask),
+        )
         q = self.drop_path2(q, self._mlp_residual_path)
         return q

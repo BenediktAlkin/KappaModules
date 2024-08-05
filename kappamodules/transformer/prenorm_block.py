@@ -70,6 +70,10 @@ class PrenormBlock(nn.Module):
         return self.ls2(self.mlp(self.norm2(x)))
 
     def forward(self, x, attn_mask=None):
-        x = self.drop_path1(x, partial(self._attn_residual_path, attn_mask=attn_mask))
+        x = self.drop_path1(
+            x,
+            residual_path=self._attn_residual_path,
+            residual_path_kwargs=dict(attn_mask=attn_mask),
+        )
         x = self.drop_path2(x, self._mlp_residual_path)
         return x
