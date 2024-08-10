@@ -135,3 +135,14 @@ class TestEfficientDropPath(unittest.TestCase):
             training=False,
             seed=4389,
         )
+
+    def test_099_stoch_scalebykeep(self):
+        self.is_equal_to_original(
+            batch_size=10,
+            dim=4,
+            drop_prob=0.99,
+            stochastic_drop_prob=True,
+            scale_by_keep=True,
+            training=True,
+            seed=4389,
+        )
