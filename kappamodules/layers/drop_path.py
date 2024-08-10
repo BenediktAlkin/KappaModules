@@ -75,9 +75,15 @@ class DropPath(nn.Sequential):
             perm = torch.empty(bs, device=x.device).bernoulli_(self.keep_prob).nonzero().squeeze(1)
             scale = 1 / self.keep_prob
         else:
-            keep_count = max(int(bs * self.keep_prob), 1)
             scale = bs / keep_count
             perm = torch.randperm(bs, device=x.device)[:keep_count]
+
+        # some cuda kernels throw errors when called with an empty tensor -> propagate 1 sample through and zero it
+        # - F.scaled_dot_product_attention
+        zero_result = False
+        if len(perm) == 0:
+            perm = torch.tensor([0], device=x.device)
+            zero_result = True
 
         # propagate
         if self.scale_by_keep:
@@ -93,6 +99,8 @@ class DropPath(nn.Sequential):
             residual = super().forward(x[perm], **residual_path_kwargs)
         else:
             residual = residual_path(x[perm], **residual_path_kwargs)
+        if zero_result:
+            residual = residual * 0
         return torch.index_add(
             x.flatten(start_dim=1),
             dim=0,
