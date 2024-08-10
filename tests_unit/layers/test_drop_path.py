@@ -8,7 +8,7 @@ from original_modules.original_drop_path import OriginalDropPath
 
 
 class TestEfficientDropPath(unittest.TestCase):
-    def is_equal_to_original(self, dim, drop_prob, stochastic_drop_prob, scale_by_keep, training, seed):
+    def is_equal_to_original(self, batch_size, dim, drop_prob, stochastic_drop_prob, scale_by_keep, training, seed):
         # create layers
         torch.manual_seed(seed)
         custom_sequential_layer = nn.Linear(dim, dim)
@@ -28,7 +28,7 @@ class TestEfficientDropPath(unittest.TestCase):
             original = original.eval()
 
         # create data (and make sure that DropPath does nothing inplace)
-        x = torch.randn(10, dim, generator=torch.Generator().manual_seed(seed))
+        x = torch.randn(batch_size, dim, generator=torch.Generator().manual_seed(seed))
         og_x = x.clone()
         # original forward + backward
         torch.manual_seed(seed)
@@ -61,6 +61,7 @@ class TestEfficientDropPath(unittest.TestCase):
 
     def test_03_stochasticsize_scalebykeep_training(self):
         self.is_equal_to_original(
+            batch_size=10,
             dim=4,
             drop_prob=0.3,
             stochastic_drop_prob=True,
@@ -71,6 +72,7 @@ class TestEfficientDropPath(unittest.TestCase):
 
     def test_03_fixedsize_scalebykeep_training(self):
         self.is_equal_to_original(
+            batch_size=10,
             dim=4,
             drop_prob=0.3,
             stochastic_drop_prob=False,
@@ -81,6 +83,7 @@ class TestEfficientDropPath(unittest.TestCase):
 
     def test_03_stochasticsize_noscalebykeep_training(self):
         self.is_equal_to_original(
+            batch_size=10,
             dim=4,
             drop_prob=0.3,
             stochastic_drop_prob=True,
@@ -91,6 +94,7 @@ class TestEfficientDropPath(unittest.TestCase):
 
     def test_03_stochasticsize_scalebykeep_eval(self):
         self.is_equal_to_original(
+            batch_size=10,
             dim=4,
             drop_prob=0.3,
             stochastic_drop_prob=True,
@@ -101,6 +105,7 @@ class TestEfficientDropPath(unittest.TestCase):
 
     def test_03_fixedsize_noscalebykeep_training(self):
         self.is_equal_to_original(
+            batch_size=10,
             dim=4,
             drop_prob=0.3,
             stochastic_drop_prob=False,
@@ -111,6 +116,7 @@ class TestEfficientDropPath(unittest.TestCase):
 
     def test_03_fixedsize_scalebykeep_eval(self):
         self.is_equal_to_original(
+            batch_size=10,
             dim=4,
             drop_prob=0.3,
             stochastic_drop_prob=False,
@@ -121,10 +127,66 @@ class TestEfficientDropPath(unittest.TestCase):
 
     def test_03_fixedsize_noscalebykeep_eval(self):
         self.is_equal_to_original(
+            batch_size=10,
             dim=4,
             drop_prob=0.3,
             stochastic_drop_prob=False,
             scale_by_keep=False,
             training=False,
+            seed=4389,
+        )
+
+    def test_03_fixedsize_scalebykeep_bs2_inefficient(self):
+        self.is_equal_to_original(
+            batch_size=2,
+            dim=4,
+            drop_prob=0.3,
+            stochastic_drop_prob=True,
+            scale_by_keep=True,
+            training=True,
+            seed=4389,
+        )
+
+    def test_03_fixedsize_scalebykeep_bs16_inefficient(self):
+        self.is_equal_to_original(
+            batch_size=16,
+            dim=4,
+            drop_prob=0.3,
+            stochastic_drop_prob=True,
+            scale_by_keep=True,
+            training=True,
+            seed=4389,
+        )
+
+    def test_03_fixedsize_scalebykeep_bs32_inefficient(self):
+        self.is_equal_to_original(
+            batch_size=32,
+            dim=4,
+            drop_prob=0.3,
+            stochastic_drop_prob=True,
+            scale_by_keep=True,
+            training=True,
+            seed=4389,
+        )
+
+    def test_03_fixedsize_scalebykeep_bs64_inefficient(self):
+        self.is_equal_to_original(
+            batch_size=64,
+            dim=4,
+            drop_prob=0.3,
+            stochastic_drop_prob=True,
+            scale_by_keep=True,
+            training=True,
+            seed=4389,
+        )
+
+    def test_03_fixedsize_scalebykeep_bs128_efficient(self):
+        self.is_equal_to_original(
+            batch_size=128,
+            dim=4,
+            drop_prob=0.3,
+            stochastic_drop_prob=True,
+            scale_by_keep=True,
+            training=True,
             seed=4389,
         )
