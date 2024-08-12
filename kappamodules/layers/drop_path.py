@@ -63,27 +63,27 @@ class DropPath(nn.Sequential):
         # allow some level of tolerance
         actual_keep_prob = keep_count / bs
         drop_path_delta = self.keep_prob - actual_keep_prob
-        if drop_path_delta > self.drop_prob_tolerance:
-            warnings.warn(
-                f"efficient stochastic depth (DropPath) would change drop_path_rate by {drop_path_delta:.4f} "
-                f"because the batchsize is too small to accurately drop {bs - keep_count} samples per forward pass"
-                f" -> forcing stochastic_drop_prob=True drop_path_rate={self.drop_prob}"
-            )
+        # if drop_path_delta > self.drop_prob_tolerance:
+        #     warnings.warn(
+        #         f"efficient stochastic depth (DropPath) would change drop_path_rate by {drop_path_delta:.4f} "
+        #         f"because the batchsize is too small to accurately drop {bs - keep_count} samples per forward pass"
+        #         f" -> forcing stochastic_drop_prob=True drop_path_rate={self.drop_prob}"
+        #     )
+
+        # inefficient drop_path
+        if self.stochastic_drop_prob or drop_path_delta > self.drop_prob_tolerance:
+            shape = (x.shape[0],) + (1,) * (x.ndim - 1)
+            random_tensor = x.new_empty(shape).bernoulli_(self.keep_prob)
+            if self.scale_by_keep:
+                random_tensor.div_(self.keep_prob)
+            if residual_path is None:
+                return x + super().forward(x, **residual_path_kwargs) * random_tensor
+            else:
+                return x + residual_path(x, **residual_path_kwargs) * random_tensor
 
         # generate indices to keep (propagated through transform path)
-        if self.stochastic_drop_prob or drop_path_delta > self.drop_prob_tolerance:
-            perm = torch.empty(bs, device=x.device).bernoulli_(self.keep_prob).nonzero().squeeze(1)
-            scale = 1 / self.keep_prob
-        else:
-            scale = bs / keep_count
-            perm = torch.randperm(bs, device=x.device)[:keep_count]
-
-        # some cuda kernels throw errors when called with an empty tensor -> propagate 1 sample through and zero it
-        # - F.scaled_dot_product_attention
-        zero_result = False
-        if len(perm) == 0:
-            perm = torch.tensor([0], device=x.device)
-            zero_result = True
+        scale = bs / keep_count
+        perm = torch.randperm(bs, device=x.device)[:keep_count]
 
         # propagate
         if self.scale_by_keep:
@@ -99,8 +99,6 @@ class DropPath(nn.Sequential):
             residual = super().forward(x[perm], **residual_path_kwargs)
         else:
             residual = residual_path(x[perm], **residual_path_kwargs)
-        if zero_result:
-            residual = residual * 0
         return torch.index_add(
             x.flatten(start_dim=1),
             dim=0,
