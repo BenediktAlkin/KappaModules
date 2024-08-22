@@ -1,4 +1,5 @@
 from .continuous_sincos_embed import ContinuousSincosEmbed
+from .continuous_pos_embed import ContinuousPosEmbed
 from .drop_path import DropPath
 from .identity import Identity
 from .ignore_args_and_kwargs_wrapper import IgnoreArgsAndKwargsWrapper
