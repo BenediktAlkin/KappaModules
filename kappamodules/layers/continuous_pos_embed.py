@@ -26,6 +26,7 @@ class ContinuousPosEmbed(nn.Module):
         ndim_padding = dim % ndim
         dim_per_ndim = (dim - ndim_padding) // ndim
         if mode == "sincos":
+            assert max_value is None, "max_value is defined, but mode is sincos -> use learnable mode"
             sincos_padding = dim_per_ndim % 2
             self.padding = ndim_padding + sincos_padding * ndim
             eff_dim_per_wave = (self.dim - self.padding) // ndim
