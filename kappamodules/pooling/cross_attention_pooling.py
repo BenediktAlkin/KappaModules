@@ -11,6 +11,7 @@ class CrossAttentionPooling(nn.Module):
             self,
             dim: int,
             num_heads: int = 12,
+            out_dim: int = None,
             kv_bias: bool = True,
             num_query_tokens: int = 1,
             init_std: float = 0.02,
@@ -21,6 +22,8 @@ class CrossAttentionPooling(nn.Module):
         assert hasattr(F, "scaled_dot_product_attention")
         assert dim % num_heads == 0, "dim should be divisible by num_heads"
         self.dim = dim
+        out_dim = out_dim or dim
+        self.out_dim = out_dim
         self.head_dim = dim // num_heads
         self.num_heads = num_heads
         self.init_std = init_std
@@ -34,6 +37,7 @@ class CrossAttentionPooling(nn.Module):
             # use CLS token of transformer
             self.query_tokens = None
         self.kv = LinearProjection(dim, dim * 2, bias=kv_bias, init_weights=init_weights)
+        self.out = LinearProjection(dim, out_dim, init_weights=init_weights, optional=True)
 
         self.num_query_tokens = num_query_tokens
         self.reset_parameters()
@@ -75,5 +79,6 @@ class CrossAttentionPooling(nn.Module):
 
         x = F.scaled_dot_product_attention(q, k, v)
         x = einops.rearrange(x, "bs num_heads seqlen head_dim -> bs seqlen (num_heads head_dim)")
+        x = self.out(x)
 
         return x
