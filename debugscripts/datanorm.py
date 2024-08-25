@@ -14,7 +14,6 @@ from kappamodules.layers import DataNorm
 
 
 def main_single(rank, world_size):
-    return
     if rank == 0:
         print(f"world_size: {world_size}")
     norm = DataNorm(dim=3)
