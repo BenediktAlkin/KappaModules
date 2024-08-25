@@ -20,7 +20,6 @@ class DataNorm(nn.Module):
         self.register_buffer("mean", torch.zeros(dim))
         self.register_buffer("var", torch.ones(dim))
         self.register_buffer("num_batches_tracked", torch.tensor(0.))
-        self.batchsize_buffer = []
         self.mean_buffer = []
         self.var_buffer = []
         self._async_handle = None
@@ -57,13 +56,11 @@ class DataNorm(nn.Module):
             x = torch.concat(x)
             self._async_handle = None
             # add stats to buffer
-            self.batchsize_buffer.append(len(x))
             xmean, xvar = self._x_to_stats(x)
             self.mean_buffer.append(xmean)
             self.var_buffer.append(xvar)
 
         # update should be called on every update
-        assert len(self.batchsize_buffer) == 1
         assert len(self.mean_buffer) == 1
         assert len(self.var_buffer) == 1
 
@@ -71,7 +68,6 @@ class DataNorm(nn.Module):
         mean = self.mean_buffer[0]
         var = self.var_buffer[0]
         # clear buffers
-        self.batchsize_buffer.clear()
         self.mean_buffer.clear()
         self.var_buffer.clear()
         # calculate momentum
@@ -121,7 +117,6 @@ class DataNorm(nn.Module):
         # single GPU -> directly update stats
         if self.training and not dist.is_initialized():
             with torch.no_grad():
-                self.batchsize_buffer.append(len(og_x))
                 xmean, xvar = self._x_to_stats(og_x)
                 self.mean_buffer.append(xmean)
                 self.var_buffer.append(xvar)
