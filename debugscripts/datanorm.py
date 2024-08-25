@@ -22,7 +22,7 @@ def main_single(rank, world_size):
     norm = DataNorm(dim=3, channel_first=False)
     ds = TensorDataset(torch.randn(10000, 3), torch.randn(10000))
 
-    dl = DataLoader(ds, batch_size=32)
+    dl = DataLoader(ds, batch_size=32 + rank)
     mean_deltas = []
     var_deltas = []
     for x, _ in tqdm(dl):
