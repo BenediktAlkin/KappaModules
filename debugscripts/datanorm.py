@@ -41,7 +41,10 @@ def main_single(rank, world_size):
     plt.grid()
     plt.yscale("log")
     plt.tight_layout()
-    plt.show()
+    if os.name == "nt":
+        plt.show()
+    else:
+        plt.savefig("datanorm.svg")
 
 
 def run_multi(rank):
