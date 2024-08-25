@@ -12,10 +12,18 @@ class DataNormStateDictPreHook:
 
 
 class DataNorm(nn.Module):
-    def __init__(self, dim, eps=1e-6, channel_first=True, gather_mode="global"):
+    def __init__(
+            self,
+            dim,
+            eps=1e-6,
+            channel_first=True,
+            gather_mode="global",
+            frozen=False,
+    ):
         super().__init__()
         self.dim = dim
         self.eps = eps
+        self.frozen = frozen
         self.channel_first = channel_first
         assert gather_mode in ["global", "none"]
         self.gather_mode = gather_mode
@@ -108,7 +116,7 @@ class DataNorm(nn.Module):
                 if self._async_handle is not None:
                     self._update_stats(inplace=True)
                 # queue synchonization for current iteration
-                if self.training:
+                if self.training and not self.frozen:
                     assert self._async_handle is None
                     tensor_list = [torch.zeros_like(x) for _ in range(dist.get_world_size())]
                     self._async_handle = dist.all_gather(tensor_list, x, async_op=True)
@@ -133,7 +141,7 @@ class DataNorm(nn.Module):
             x = einops.rearrange(x, "bs dim ... -> bs ... dim")
 
         # single GPU -> directly update stats
-        if self.training and self._async_handle is None:
+        if self.training and not self.frozen and self._async_handle is None:
             with torch.no_grad():
                 xmean, xvar = self._x_to_stats(og_x)
                 self.mean_buffer.append(xmean)
