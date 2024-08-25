@@ -62,6 +62,10 @@ class DataNorm(nn.Module):
             self.mean_buffer.append(xmean)
             self.var_buffer.append(xvar)
 
+        # if no forward pass was cunducted since last update -> skip update
+        if len(self.mean_buffer) == 0:
+            assert len(self.var_buffer) == 0
+            return
         # update should be called on every update
         assert len(self.mean_buffer) == 1, len(self.mean_buffer)
         assert len(self.var_buffer) == 1, len(self.var_buffer)
