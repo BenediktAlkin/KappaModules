@@ -5,6 +5,8 @@ scratchpad*.py
 *.jpg
 *.mp4
 
+*cifar-10*
+
 temp/
 
 main_*.py

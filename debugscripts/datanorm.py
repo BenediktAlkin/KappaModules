@@ -2,6 +2,8 @@ import os
 
 import matplotlib.pyplot as plt
 import torch
+import torch.distributed as dist
+from torch.multiprocessing import spawn
 from torch.utils.data import DataLoader
 from torchvision.datasets import CIFAR10
 from torchvision.transforms import ToTensor
@@ -11,7 +13,10 @@ from tqdm import tqdm
 from kappamodules.layers import DataNorm
 
 
-def main():
+def main_single(rank, world_size):
+    return
+    if rank == 0:
+        print(f"world_size: {world_size}")
     norm = DataNorm(dim=3)
     ds = CIFAR10(root=".", train=True, download=True, transform=ToTensor())
     dl = DataLoader(ds, batch_size=32)
@@ -39,7 +44,20 @@ def main():
     plt.show()
 
 
+def run_multi(rank):
+    os.environ["MASTER_ADDR"] = "localhost"
+    os.environ["MASTER_PORT"] = "55455"
+    dist.init_process_group(backend="gloo", init_method="env://", world_size=2, rank=rank)
+    main_single(rank=rank, world_size=2)
+    dist.destroy_process_group()
+
+
+def main_multi():
+    spawn(run_multi, nprocs=2)
+
+
 if __name__ == "__main__":
     if os.name == "nt":
         os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
-    main()
+    #main_single(rank=0, world_size=1)
+    main_multi()
