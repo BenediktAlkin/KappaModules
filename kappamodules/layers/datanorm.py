@@ -12,11 +12,13 @@ class DataNormStateDictPreHook:
 
 
 class DataNorm(nn.Module):
-    def __init__(self, dim, eps=1e-6, channel_first=True):
+    def __init__(self, dim, eps=1e-6, channel_first=True, gather_mode="global"):
         super().__init__()
         self.dim = dim
         self.eps = eps
         self.channel_first = channel_first
+        assert gather_mode in ["global", "none"]
+        self.gather_mode = gather_mode
         self.register_buffer("mean", torch.zeros(dim))
         self.register_buffer("var", torch.ones(dim))
         self.register_buffer("num_batches_tracked", torch.tensor(0.))
@@ -73,6 +75,13 @@ class DataNorm(nn.Module):
         # calculate momentum
         self.num_batches_tracked += 1
         momentum = 1 / self.num_batches_tracked
+        # if x is a sparse tensor with variable shape all_gather will add an additional dimension and pad the tensor
+        # -> raise error as this is not supported
+        if mean.shape != self.mean.shape:
+            raise NotImplementedError(
+                f"invalid stat shapes -> most likely due to GPUs having different batch_sizes "
+                f"-> set gather_mode='none'"
+            )
         # update stats
         if inplace:
             # if used in nograd environment -> inplace
@@ -89,15 +98,20 @@ class DataNorm(nn.Module):
                 raise NotImplementedError("DataNorm batch_size=1 requires syncing features instead of stats")
 
         # multi GPU -> queue communication of batch stats
-        if dist.is_initialized():
-            # update stats for previous iteration
-            if self._async_handle is not None:
-                self._update_stats(inplace=True)
-            # queue synchonization for current iteration
-            if self.training:
-                assert self._async_handle is None
-                tensor_list = [torch.zeros_like(x) for _ in range(dist.get_world_size())]
-                self._async_handle = dist.all_gather(tensor_list, x, async_op=True)
+        if self.gather_mode == "global":
+            if dist.is_initialized():
+                # update stats for previous iteration
+                if self._async_handle is not None:
+                    self._update_stats(inplace=True)
+                # queue synchonization for current iteration
+                if self.training:
+                    assert self._async_handle is None
+                    tensor_list = [torch.zeros_like(x) for _ in range(dist.get_world_size())]
+                    self._async_handle = dist.all_gather(tensor_list, x, async_op=True)
+        elif self.gather_mode == "none":
+            pass
+        else:
+            raise NotImplementedError
 
         # normalize
         og_x = x
@@ -115,7 +129,7 @@ class DataNorm(nn.Module):
             x = einops.rearrange(x, "bs dim ... -> bs ... dim")
 
         # single GPU -> directly update stats
-        if self.training and not dist.is_initialized():
+        if self.training and self._async_handle is None:
             with torch.no_grad():
                 xmean, xvar = self._x_to_stats(og_x)
                 self.mean_buffer.append(xmean)
