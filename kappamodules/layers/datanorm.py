@@ -63,8 +63,8 @@ class DataNorm(nn.Module):
             self.var_buffer.append(xvar)
 
         # update should be called on every update
-        assert len(self.mean_buffer) == 1
-        assert len(self.var_buffer) == 1
+        assert len(self.mean_buffer) == 1, len(self.mean_buffer)
+        assert len(self.var_buffer) == 1, len(self.var_buffer)
 
         # accumulate stats
         mean = self.mean_buffer[0]
