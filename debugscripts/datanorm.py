@@ -5,8 +5,6 @@ import torch
 import torch.distributed as dist
 from torch.multiprocessing import spawn
 from torch.utils.data import DataLoader
-from torchvision.datasets import CIFAR10
-from torchvision.transforms import ToTensor
 # noinspection PyPackageRequirements
 from tqdm import tqdm
 
@@ -16,10 +14,15 @@ from kappamodules.layers import DataNorm
 def main_single(rank, world_size):
     if rank == 0:
         print(f"world_size: {world_size}")
-    norm = DataNorm(dim=3)
-    ds = CIFAR10(root=".", train=True, download=True, transform=ToTensor())
-    dl = DataLoader(ds, batch_size=32)
+    # norm = DataNorm(dim=3)
+    # from torchvision.datasets import CIFAR10
+    # from torchvision.transforms import ToTensor
+    # ds = CIFAR10(root=".", train=True, download=True, transform=ToTensor())
+    from torch.utils.data import TensorDataset
+    norm = DataNorm(dim=3, channel_first=False)
+    ds = TensorDataset(torch.randn(10000, 3), torch.randn(10000))
 
+    dl = DataLoader(ds, batch_size=32)
     mean_deltas = []
     var_deltas = []
     for x, _ in tqdm(dl):
