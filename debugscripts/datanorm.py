@@ -52,7 +52,7 @@ def main_single(rank, world_size):
 def run_multi(rank):
     os.environ["MASTER_ADDR"] = "localhost"
     os.environ["MASTER_PORT"] = "55455"
-    dist.init_process_group(backend="gloo", init_method="env://", world_size=2, rank=rank)
+    dist.init_process_group(backend="gloo" if os.name == "nt" else "nccl", init_method="env://", world_size=2, rank=rank)
     main_single(rank=rank, world_size=2)
     dist.destroy_process_group()
 
