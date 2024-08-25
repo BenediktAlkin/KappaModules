@@ -19,7 +19,7 @@ def main_single(rank, world_size):
     # from torchvision.transforms import ToTensor
     # ds = CIFAR10(root=".", train=True, download=True, transform=ToTensor())
     from torch.utils.data import TensorDataset
-    norm = DataNorm(dim=3, channel_first=False)
+    norm = DataNorm(dim=3, channel_first=False, gather_mode="none")
     ds = TensorDataset(torch.randn(10000, 3), torch.randn(10000))
 
     dl = DataLoader(ds, batch_size=32 + rank)
@@ -52,7 +52,7 @@ def main_single(rank, world_size):
 def run_multi(rank):
     os.environ["MASTER_ADDR"] = "localhost"
     os.environ["MASTER_PORT"] = "55455"
-    dist.init_process_group(backend="gloo" if os.name == "nt" else "nccl", init_method="env://", world_size=2, rank=rank)
+    dist.init_process_group(backend="gloo", init_method="env://", world_size=2, rank=rank)
     main_single(rank=rank, world_size=2)
     dist.destroy_process_group()
 
