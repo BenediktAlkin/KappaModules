@@ -51,7 +51,8 @@ class MMDiTDotProductAttention(nn.Module):
         else:
             raise NotImplementedError
         if self.init_last_proj_zero:
-            nn.init.zeros_(self.proj.weight)
+            nn.init.zeros_(self.proj1.weight)
+            nn.init.zeros_(self.proj2.weight)
 
     @staticmethod
     def to_channel_last(x):
