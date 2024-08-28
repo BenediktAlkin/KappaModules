@@ -15,6 +15,6 @@ class TestMMDiTBlock(unittest.TestCase):
         x1 = torch.randn(4, seqlen1, dim)
         x2 = torch.randn(4, seqlen2, dim)
         cond = torch.randn(4, dim)
-        y1, y2 = block(x1=x1, x2=x2, cond=cond)
+        y1, y2 = block(x1, x2, cond=cond)
         self.assertEqual(x1.shape, y1.shape)
         self.assertEqual(x2.shape, y2.shape)
