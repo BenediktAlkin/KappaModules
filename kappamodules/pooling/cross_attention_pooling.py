@@ -16,6 +16,8 @@ class CrossAttentionPooling(nn.Module):
             num_query_tokens: int = 1,
             init_std: float = 0.02,
             norm_ctor=None,
+            normalize_q=False,
+            normalize_kv=True,
             init_weights: str = "truncnormal002",
     ):
         super().__init__()
@@ -27,8 +29,14 @@ class CrossAttentionPooling(nn.Module):
         self.head_dim = dim // num_heads
         self.num_heads = num_heads
         self.init_std = init_std
+        self.normalize_q = normalize_q
+        self.normalize_kv = normalize_kv
 
-        self.norm = nn.Identity() if norm_ctor is None else norm_ctor(dim)
+        if normalize_kv:
+            assert norm_ctor is not None
+            self.norm = norm_ctor(dim)
+        else:
+            self.norm = nn.Identity()
 
         if num_query_tokens > 0:
             # transformer doesnt have a CLS token -> learn it in the pooling
@@ -36,6 +44,11 @@ class CrossAttentionPooling(nn.Module):
         else:
             # use CLS token of transformer
             self.query_tokens = None
+        if normalize_q:
+            assert norm_ctor is not None
+            self.norm_q = norm_ctor(dim)
+        else:
+            self.norm_q = nn.Identity()
         self.kv = LinearProjection(dim, dim * 2, bias=kv_bias, init_weights=init_weights)
         self.out = LinearProjection(dim, out_dim, init_weights=init_weights, optional=True)
 
@@ -60,6 +73,7 @@ class CrossAttentionPooling(nn.Module):
         # create query
         if query_tokens is None:
             query_tokens = self.query_tokens.expand(len(x), -1, -1)
+        query_tokens = self.norm_q(query_tokens)
         q = einops.rearrange(
             query_tokens,
             "bs seqlen_q (num_heads head_dim) -> bs num_heads seqlen_q head_dim",
