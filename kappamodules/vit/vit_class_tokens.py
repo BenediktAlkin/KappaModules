@@ -76,6 +76,14 @@ class VitClassTokens(nn.Module):
         if self.location == "first":
             cls_tokens = x[:, :self.num_tokens]
             patch_tokens = x[:, self.num_tokens:]
+        elif self.location == "middle":
+            middle_start = (x.size(1) - self.num_tokens) // 2
+            middle_end = middle_start + self.num_tokens
+            cls_tokens = x[:, middle_start:middle_end]
+            patch_tokens = torch.concat([x[:, :middle_start], x[:, middle_end:]], dim=1)
+        elif self.location == "bilateral":
+            cls_tokens = x[:, [0, -1]]
+            patch_tokens = x[:, 1:-1]
         else:
             raise NotImplementedError
         return cls_tokens, patch_tokens
