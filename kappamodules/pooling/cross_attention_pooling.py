@@ -15,10 +15,10 @@ class CrossAttentionPooling(nn.Module):
             kv_bias: bool = True,
             num_query_tokens: int = 1,
             init_std: float = 0.02,
-            norm_ctor=None,
             normalize_q=False,
             normalize_kv=True,
             init_weights: str = "truncnormal002",
+            eps=1e-6,
     ):
         super().__init__()
         assert hasattr(F, "scaled_dot_product_attention")
@@ -31,10 +31,10 @@ class CrossAttentionPooling(nn.Module):
         self.init_std = init_std
         self.normalize_q = normalize_q
         self.normalize_kv = normalize_kv
+        self.eps = eps
 
         if normalize_kv:
-            assert norm_ctor is not None
-            self.norm = norm_ctor(dim)
+            self.norm = nn.LayerNorm(dim, eps=eps)
         else:
             self.norm = nn.Identity()
 
@@ -45,8 +45,7 @@ class CrossAttentionPooling(nn.Module):
             # use CLS token of transformer
             self.query_tokens = None
         if normalize_q:
-            assert norm_ctor is not None
-            self.norm_q = norm_ctor(dim)
+            self.norm_q = nn.LayerNorm(dim, eps=eps)
         else:
             self.norm_q = nn.Identity()
         self.kv = LinearProjection(dim, dim * 2, bias=kv_bias, init_weights=init_weights)
