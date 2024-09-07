@@ -17,6 +17,7 @@ class PostnormBlock(nn.Module):
             act_ctor=nn.GELU,
             norm_ctor=nn.LayerNorm,
             attn_ctor=DotProductAttention1d,
+            layerscale=None,
             eps=1e-6,
             init_weights="xavier_uniform",
             init_norms="nonaffine",
@@ -32,6 +33,7 @@ class PostnormBlock(nn.Module):
             init_weights=init_weights,
             init_last_proj_zero=init_last_proj_zero,
         )
+        self.ls1 = nn.Identity() if layerscale is None else LayerScale(dim, init_scale=layerscale)
         self.drop_path1 = DropPath(drop_prob=drop_path)
         self.norm1 = norm_ctor(dim, eps=eps)
         self.mlp = Mlp(
@@ -41,6 +43,7 @@ class PostnormBlock(nn.Module):
             init_weights=init_weights,
             init_last_proj_zero=init_last_proj_zero,
         )
+        self.ls2 = nn.Identity() if layerscale is None else LayerScale(dim, init_scale=layerscale)
         self.drop_path2 = DropPath(drop_prob=drop_path)
         self.norm2 = norm_ctor(dim, eps=eps)
         self.reset_parameters()
@@ -55,10 +58,10 @@ class PostnormBlock(nn.Module):
             raise NotImplementedError
 
     def _attn_residual_path(self, x):
-        return self.attn(x)
+        return self.ls1(self.attn(x))
 
     def _mlp_residual_path(self, x):
-        return self.mlp(x)
+        return self.ls2(self.mlp(x))
 
     def forward(self, x):
         x = self.norm1(self.drop_path1(x, self._attn_residual_path))
