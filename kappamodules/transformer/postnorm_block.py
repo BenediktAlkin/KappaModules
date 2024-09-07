@@ -2,7 +2,7 @@ from torch import nn
 
 from kappamodules.attention import DotProductAttention1d
 from kappamodules.init.functional import init_norms_as_noaffine
-from kappamodules.layers import DropPath
+from kappamodules.layers import DropPath, LayerScale
 from .mlp import Mlp
 
 
