@@ -3,17 +3,22 @@ from functools import partial
 import torch
 
 _cache = {}
+_version_cache = {}
 
-
+# noinspection PyProtectedMember
 def _wrapper(key, ctor=None):
     if key in _cache:
         tensor = _cache[key]
-        # noinspection PyProtectedMember
-        assert tensor._version == 0, f"cached tensor with key={key} was modified inplace"
+        expected_version = _version_cache.get(key, 0)
+        assert tensor._version == expected_version, f"cached tensor with key={key} was modified inplace"
         return tensor
     assert ctor is not None
     tensor = ctor()
     _cache[key] = tensor
+    # ctor can modify the tensor inplace
+    # e.g. tc.named("mask", ctor=lambda: F.one_hot(...)) will have an initial _version of 2
+    if tensor._version > 0:
+        _version_cache[key] = tensor._version
     return tensor
 
 
