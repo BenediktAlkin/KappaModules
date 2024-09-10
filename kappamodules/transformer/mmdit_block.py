@@ -8,7 +8,11 @@ from .mlp import Mlp
 
 
 class MMDitBlock(nn.Module):
-    """ multi-modal adaptive norm block (https://arxiv.org/abs/2403.03206) """
+    """
+    adaption of the multi-modal adaptive norm block (https://arxiv.org/abs/2403.03206)
+    - supports arbitrary many modalities
+    - conditioning is assumed to be per modality
+    """
 
     def __init__(
             self,
@@ -32,13 +36,18 @@ class MMDitBlock(nn.Module):
         mlp_hidden_dim = mlp_hidden_dim or dim * 4
         cond_dim = cond_dim or dim
         # modulation
-        self.modulation = Dit(
-            cond_dim=cond_dim,
-            out_dim=dim,
-            init_weights=init_weights,
-            num_outputs=6 * num_modalities,
-            gate_indices=list(range(2, 6 * num_modalities, 3)),
-            init_gate_zero=init_gate_zero,
+        self.modulation = nn.ModuleList(
+            [
+                Dit(
+                    cond_dim=cond_dim,
+                    out_dim=dim,
+                    init_weights=init_weights,
+                    num_outputs=6,
+                    gate_indices=[2, 5],
+                    init_gate_zero=init_gate_zero,
+                )
+                for _ in range(num_modalities)
+            ],
         )
         # attn
         self.attn = MMDiTDotProductAttention(
@@ -94,12 +103,15 @@ class MMDitBlock(nn.Module):
             x[i] = modulate_gate(x[i], gate=gates[i])
         return x
 
-    def forward(self, *args, cond, attn_mask=None):
-        scales_shifts_gates = self.modulation(cond)
-        scales = [scales_shifts_gates[i] for i in range(0, 3 * self.num_modalities, 3)]
-        shifts = [scales_shifts_gates[i] for i in range(1, 3 * self.num_modalities, 3)]
-        gates = [scales_shifts_gates[i] for i in range(2, 3 * self.num_modalities, 3)]
-        x = list(args)
+    def forward(self, x, cond, attn_mask=None):
+        assert isinstance(x, (list, tuple))
+        assert isinstance(cond, (list, tuple))
+
+        scales_shifts_gates = [self.modulation[i](cond[i]) for i in range(self.num_modalities)]
+        scales = [scales_shifts_gates[i][0] for i in range(self.num_modalities)]
+        shifts = [scales_shifts_gates[i][1] for i in range(self.num_modalities)]
+        gates = [scales_shifts_gates[i][2] for i in range(self.num_modalities)]
+        og_x = [x[i] for i in range(len(x))]
         x = self._attn_residual_path(
             x=x,
             scales=scales,
@@ -107,13 +119,16 @@ class MMDitBlock(nn.Module):
             gates=gates,
             attn_mask=attn_mask,
         )
-        scales = [scales_shifts_gates[i] for i in range(0 + 3 * self.num_modalities, 6 * self.num_modalities, 3)]
-        shifts = [scales_shifts_gates[i] for i in range(1 + 3 * self.num_modalities, 6 * self.num_modalities, 3)]
-        gates = [scales_shifts_gates[i] for i in range(2 + 3 * self.num_modalities, 6 * self.num_modalities, 3)]
+        x = [og_x[i] + x[i] for i in range(len(x))]
+        scales = [scales_shifts_gates[i][3] for i in range(self.num_modalities)]
+        shifts = [scales_shifts_gates[i][4] for i in range(self.num_modalities)]
+        gates = [scales_shifts_gates[i][5] for i in range(self.num_modalities)]
+        og_x = [x[i] for i in range(len(x))]
         x = self._mlp_residual_path(
             x=x,
             scales=scales,
             shifts=shifts,
             gates=gates,
         )
+        x = [og_x[i] + x[i] for i in range(len(x))]
         return x
