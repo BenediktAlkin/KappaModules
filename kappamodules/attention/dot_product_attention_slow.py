@@ -14,6 +14,7 @@ class DotProductAttentionSlow(nn.Module):
             num_heads=8,
             qkv_bias=True,
             qk_norm=False,
+            proj_bias=True,
             attn_drop=0.,
             proj_drop=0.,
             norm_layer=nn.LayerNorm,
@@ -32,7 +33,7 @@ class DotProductAttentionSlow(nn.Module):
         self.q_norm = norm_layer(self.head_dim) if qk_norm else nn.Identity()
         self.k_norm = norm_layer(self.head_dim) if qk_norm else nn.Identity()
         self.attn_drop = nn.Dropout(attn_drop)
-        self.proj = nn.Linear(dim, dim)
+        self.proj = nn.Linear(dim, dim, bias=proj_bias)
         self.proj_drop = nn.Dropout(proj_drop)
 
         self.reset_parameters()
