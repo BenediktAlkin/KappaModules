@@ -101,8 +101,9 @@ def get_sincos_pos_embed_from_grid(grid, dim: int, max_wavelength: int = 10000):
 
 
 def interpolate_sincos(embed, seqlens, mode: str = "bicubic", interpolate_offset: float = None):
+    old_dtype = embed.dtype
     assert embed.ndim - 2 == len(seqlens)
-    embed = einops.rearrange(embed, "1 ... dim -> 1 dim ...")
+    embed = einops.rearrange(embed, "1 ... dim -> 1 dim ...").float()
     if interpolate_offset:
         # legacy interpolation from DINO/DINOv2
         # there is quite a substantial numerical difference to the "cleaner" version
@@ -111,7 +112,7 @@ def interpolate_sincos(embed, seqlens, mode: str = "bicubic", interpolate_offset
     else:
         embed = F.interpolate(embed, size=seqlens, mode=mode)
     embed = einops.rearrange(embed, "1 dim ... -> 1 ... dim")
-    return embed
+    return embed.to(old_dtype)
 
 
 def relative_position_indices(seqlens, num_aux_tokens):
