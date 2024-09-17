@@ -100,13 +100,16 @@ def get_sincos_pos_embed_from_grid(grid, dim: int, max_wavelength: int = 10000):
         return torch.concat([pos_embed, padding], dim=-1)
 
 
-def interpolate_sincos(embed, seqlens, mode="bicubic"):
+def interpolate_sincos(embed, seqlens, mode: str = "bicubic", interpolate_offset: float = None):
     assert embed.ndim - 2 == len(seqlens)
-    embed = F.interpolate(
-        einops.rearrange(embed, "1 ... dim -> 1 dim ..."),
-        size=seqlens,
-        mode=mode,
-    )
+    embed = einops.rearrange(embed, "1 ... dim -> 1 dim ...")
+    if interpolate_offset:
+        # legacy interpolation from DINO/DINOv2
+        # there is quite a substantial numerical difference to the "cleaner" version
+        scale_factor = [(seqlens[i] + interpolate_offset) / embed.size(i + 2) for i in range(len(seqlens))]
+        embed = F.interpolate(embed, scale_factor=scale_factor, mode=mode)
+    else:
+        embed = F.interpolate(embed, size=seqlens, mode=mode)
     embed = einops.rearrange(embed, "1 dim ... -> 1 ... dim")
     return embed
 

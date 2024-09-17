@@ -5,12 +5,20 @@ from kappamodules.functional.pos_embed import get_sincos_pos_embed_from_seqlens,
 
 
 class VitPosEmbed(nn.Module):
-    def __init__(self, seqlens, dim: int, is_learnable: bool = False, allow_interpolation: bool = True):
+    def __init__(
+            self,
+            seqlens,
+            dim: int,
+            is_learnable: bool = False,
+            allow_interpolation: bool = True,
+            interpolate_offset: float = None,
+    ):
         super().__init__()
         self.seqlens = seqlens
         self.dim = dim
         self.is_learnable = is_learnable
         self.allow_interpolation = allow_interpolation
+        self.interpolate_offset = interpolate_offset
         if is_learnable:
             self.embed = nn.Parameter(torch.zeros(1, *seqlens, dim))
         else:
@@ -29,7 +37,11 @@ class VitPosEmbed(nn.Module):
         assert x.ndim == self._expected_x_ndim
         if x.shape[1:] != self.embed.shape[1:]:
             assert self.allow_interpolation
-            embed = interpolate_sincos(embed=self.embed, seqlens=x.shape[1:-1])
+            embed = interpolate_sincos(
+                embed=self.embed,
+                seqlens=x.shape[1:-1],
+                interpolate_offset=self.interpolate_offset,
+            )
         else:
             embed = self.embed
         return x + embed
