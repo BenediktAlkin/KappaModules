@@ -10,6 +10,7 @@ class VitClassTokens(nn.Module):
             num_tokens: int = 1,
             location: str = "first",
             init_std: float = 0.02,
+            init_std_pos: float = 0.02,
             aggregate: str = "flatten",
             decouple_position: bool = False,
     ):
@@ -18,6 +19,7 @@ class VitClassTokens(nn.Module):
         self.location = location
         self.num_tokens = num_tokens
         self.init_std = init_std
+        self.init_std_pos = init_std_pos
         self.aggregate = aggregate
         self.decouple_position = decouple_position
         if num_tokens > 0:
@@ -41,7 +43,7 @@ class VitClassTokens(nn.Module):
         if self.num_tokens > 0:
             nn.init.normal_(self.tokens, std=self.init_std)
             if self.decouple_position:
-                nn.init.normal_(self.pos, std=self.init_std)
+                nn.init.normal_(self.pos, std=self.init_std_pos)
 
     @property
     def tokens_proxy(self):
