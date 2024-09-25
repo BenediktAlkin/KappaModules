@@ -15,4 +15,5 @@ from .linformer_attention import (
     LinformerAttention3d,
 )
 from .mmdit_dot_product_attention import MMDiTDotProductAttention
+from .mmmdit_dot_product_attention import MMMDiTDotProductAttention
 from .perceiver_attention import PerceiverAttention1d, PerceiverAttention
