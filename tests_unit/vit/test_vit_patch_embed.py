@@ -22,3 +22,24 @@ class TestVitPatchEmbed(unittest.TestCase):
     def test_num_patches(self):
         embed = VitPatchEmbed(dim=7, num_channels=2, resolution=(32, 32), patch_size=4, stride=2)
         self.assertEqual(225, embed.num_patches)
+
+    def test_interpolate_1d(self):
+        embed1 = VitPatchEmbed(dim=8, num_channels=3, resolution=(32,), patch_size=16)
+        embed2 = VitPatchEmbed(dim=8, num_channels=3, resolution=(32,), patch_size=4)
+        sd = embed1.state_dict()
+        sd["proj.weight"] = embed2.interpolate_weights_from_different_patchsize(sd["proj.weight"])
+        embed2.load_state_dict(sd)
+
+    def test_interpolate_2d(self):
+        embed1 = VitPatchEmbed(dim=8, num_channels=3, resolution=(32, 32), patch_size=16)
+        embed2 = VitPatchEmbed(dim=8, num_channels=3, resolution=(32, 32), patch_size=4)
+        sd = embed1.state_dict()
+        sd["proj.weight"] = embed2.interpolate_weights_from_different_patchsize(sd["proj.weight"])
+        embed2.load_state_dict(sd)
+
+    def test_interpolate_3d(self):
+        embed1 = VitPatchEmbed(dim=8, num_channels=3, resolution=(8, 8, 8), patch_size=4)
+        embed2 = VitPatchEmbed(dim=8, num_channels=3, resolution=(8, 8, 8), patch_size=2)
+        sd = embed1.state_dict()
+        sd["proj.weight"] = embed2.interpolate_weights_from_different_patchsize(sd["proj.weight"])
+        embed2.load_state_dict(sd)

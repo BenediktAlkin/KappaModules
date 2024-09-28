@@ -79,6 +79,22 @@ class VitPatchEmbed(nn.Module):
         else:
             raise NotImplementedError
 
+    def interpolate_weights_from_different_patchsize(self, weights):
+        assert weights.ndim == self.proj.weight.ndim, \
+            f"can't interpolate from different ndim (e.g. cant interpolate 2D PatchEmbed to 3D PatchEmbed)"
+        src_patch_size = weights.shape[2:]
+        if self.patch_size == src_patch_size:
+            return weights
+        if self.ndim == 1:
+            weights = F.interpolate(weights, size=self.patch_size, mode="linear")
+        elif self.ndim == 2:
+            weights = F.interpolate(weights, size=self.patch_size, mode="bicubic")
+        elif self.ndim == 3:
+            weights = F.interpolate(weights, size=self.patch_size, mode="trilinear")
+        else:
+            raise NotImplementedError
+        return weights
+
     def forward(self, x):
         assert all(x.size(i + 2) % self.patch_size[i] == 0 for i in range(self.ndim)), \
             f"x.shape={x.shape} incompatible with patch_size={self.patch_size}"
