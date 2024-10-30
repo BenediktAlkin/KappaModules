@@ -57,6 +57,9 @@ class Mlp(nn.Module):
             raise NotImplementedError
         if self.init_last_proj_zero:
             nn.init.zeros_(self.fc2.weight)
+            # init_weights == "torch" has no zero bias init
+            if self.fc2.bias is not None:
+                nn.init.zeros_(self.fc2.bias)
 
     def forward(self, x):
         x = self.fc1(x)

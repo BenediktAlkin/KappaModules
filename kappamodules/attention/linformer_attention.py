@@ -54,6 +54,9 @@ class LinformerAttention(nn.Module):
             raise NotImplementedError
         if self.init_last_proj_zero:
             nn.init.zeros_(self.proj.weight)
+            # init_weights == "torch" has no zero bias init
+            if self.proj.bias is not None:
+                nn.init.zeros_(self.proj.bias)
 
     def to_channel_last(self, x):
         raise NotImplementedError

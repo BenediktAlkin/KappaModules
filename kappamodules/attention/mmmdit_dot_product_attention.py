@@ -67,6 +67,9 @@ class MMMDiTDotProductAttention(nn.Module):
         if self.init_last_proj_zero:
             for proj in self.proj:
                 nn.init.zeros_(proj.weight)
+                # init_weights == "torch" has no zero bias init
+                if proj.bias is not None:
+                    nn.init.zeros_(proj.bias)
 
     @staticmethod
     def to_channel_last(x):
