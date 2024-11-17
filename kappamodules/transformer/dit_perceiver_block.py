@@ -3,7 +3,6 @@ from functools import partial
 from torch import nn
 
 from kappamodules.attention import PerceiverAttention1d
-from kappamodules.init import init_norms_as_noaffine
 from kappamodules.layers import DropPath
 from kappamodules.modulation import Dit
 from kappamodules.modulation.functional import modulate_scale_shift, modulate_gate
@@ -24,13 +23,11 @@ class DitPerceiverBlock(nn.Module):
             act_ctor=nn.GELU,
             eps=1e-6,
             init_weights="xavier_uniform",
-            init_norms="nonaffine",
             init_last_proj_zero=False,
             init_gate_zero=False,
     ):
         super().__init__()
         norm_ctor = partial(nn.LayerNorm, elementwise_affine=False)
-        self.init_norms = init_norms
         mlp_hidden_dim = mlp_hidden_dim or dim * 4
         cond_dim = cond_dim or dim
         # modulation
@@ -66,16 +63,6 @@ class DitPerceiverBlock(nn.Module):
         )
         self.drop_path2 = DropPath(drop_prob=drop_path)
         self.reset_parameters()
-
-    def reset_parameters(self):
-        if self.init_norms == "torch":
-            pass
-        elif self.init_norms == "nonaffine":
-            init_norms_as_noaffine(self.norm1q)
-            init_norms_as_noaffine(self.norm1kv)
-            init_norms_as_noaffine(self.norm2)
-        else:
-            raise NotImplementedError
 
     def _attn_residual_path(self, q, kv, q_scale, q_shift, kv_scale, kv_shift, gate, attn_mask):
         q = modulate_scale_shift(self.norm1q(q), scale=q_scale, shift=q_shift)

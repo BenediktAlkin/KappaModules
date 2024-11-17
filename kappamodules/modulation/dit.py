@@ -2,7 +2,11 @@ import math
 
 import torch
 from torch import nn
-from kappamodules.init.functional import init_truncnormal_zero_bias, init_xavier_uniform_merged_linear
+from kappamodules.init.functional import (
+    init_truncnormal_zero_bias,
+    init_xavier_uniform_merged_linear,
+    init_zero,
+)
 
 
 class Dit(nn.Module):
@@ -32,6 +36,8 @@ class Dit(nn.Module):
             init_xavier_uniform_merged_linear(self.modulation, num_layers=self.num_outputs)
         elif self.init_weights in ["truncnormal", "truncnormal002"]:
             init_truncnormal_zero_bias(self.modulation)
+        elif self.init_weights == "zero":
+            init_zero(self.modulation)
         else:
             raise NotImplementedError
         if self.init_gate_zero:
