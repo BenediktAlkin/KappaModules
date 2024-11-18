@@ -13,6 +13,7 @@ class TranssolverAttention(nn.Module):
     - readable reshaping operations via einops
     - merged qkv linear layer for higher GPU utilization
     - F.scaled_dot_product_attention instead of slow pytorch attention
+    - possibility to mask tokens (required to process variable sized inputs)
     """
 
     def __init__(
