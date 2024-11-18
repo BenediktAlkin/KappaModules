@@ -3,14 +3,16 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from kappamodules.layers import LinearProjection
 from kappamodules.init import init_xavier_uniform_merged_linear
+from kappamodules.layers import LinearProjection
+
 
 class TranssolverAttention(nn.Module):
     """
     Adapted from https://github.com/thuml/Transolver/blob/main/Car-Design-ShapeNetCar/models/Transolver.py
     - readable reshaping operations via einops
     - merged qkv linear layer for higher GPU utilization
+    - F.scaled_dot_product_attention instead of slow pytorch attention
     """
 
     def __init__(self, dim, num_heads, num_slices, dropout=0., qkv_bias=False, init_weights="truncnormal"):
@@ -18,8 +20,7 @@ class TranssolverAttention(nn.Module):
         dim_head = dim // num_heads
         self.dim_head = dim_head
         self.num_heads = num_heads
-        self.scale = dim_head ** -0.5
-        self.dropout = nn.Dropout(dropout)
+        self.dropout = dropout
         self.temperature = nn.Parameter(torch.full(size=(1, num_heads, 1, 1), fill_value=0.5))
 
         self.in_project_x = LinearProjection(dim, dim, init_weights=init_weights)
@@ -38,7 +39,7 @@ class TranssolverAttention(nn.Module):
             nn.Dropout(dropout)
         )
 
-    def forward(self, x):
+    def forward(self, x, attn_mask=None):
         batch_size, seqlen, _ = x.shape
 
         # slice
@@ -53,19 +54,27 @@ class TranssolverAttention(nn.Module):
             num_heads=self.num_heads,
         ).contiguous()
         slice_weights = F.softmax(self.in_project_slice(x_mid) / self.temperature, dim=-1)
-        slice_norm = einops.repeat(
+        if attn_mask is not None:
+            assert attn_mask.dtype == torch.bool, "only bool mask supported"
+            assert attn_mask.ndim == 2
+            assert len(attn_mask) == len(x)
+            assert attn_mask.size(1) == seqlen
+            attn_mask = einops.rearrange(attn_mask, "batch_size seqlen -> batch_size 1 seqlen 1").float()
+            slice_weights = slice_weights * attn_mask
+        slice_norm = einops.rearrange(
             slice_weights.sum(2),
-            "batch_size num_heads num_slices -> batch_size num_heads num_slices dim_head",
-            dim_head=self.dim_head,
+            "batch_size num_heads num_slices -> batch_size num_heads num_slices 1",
         )
         slice_token = torch.einsum("bhnc,bhng->bhgc", fx_mid, slice_weights) / (slice_norm + 1e-5)
 
         # attention among slice tokens
         q_slice_token, k_slice_token, v_slice_token = self.qkv(slice_token).chunk(3, dim=-1)
-        dots = torch.matmul(q_slice_token, k_slice_token.transpose(-1, -2)) * self.scale
-        attn = F.softmax(dots, dim=-1)
-        attn = self.dropout(attn)
-        out_slice_token = torch.matmul(attn, v_slice_token)  # B H G D
+        out_slice_token = F.scaled_dot_product_attention(
+            q_slice_token,
+            k_slice_token,
+            v_slice_token,
+            dropout_p=self.dropout if self.training else 0.0,
+        )
 
         # deslice
         out_x = torch.einsum("bhgc,bhng->bhnc", out_slice_token, slice_weights)
