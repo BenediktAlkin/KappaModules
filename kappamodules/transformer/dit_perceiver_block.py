@@ -62,7 +62,6 @@ class DitPerceiverBlock(nn.Module):
             init_last_proj_zero=init_last_proj_zero,
         )
         self.drop_path2 = DropPath(drop_prob=drop_path)
-        self.reset_parameters()
 
     def _attn_residual_path(self, q, kv, q_scale, q_shift, kv_scale, kv_shift, gate, attn_mask):
         q = modulate_scale_shift(self.norm1q(q), scale=q_scale, shift=q_shift)
