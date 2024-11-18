@@ -15,12 +15,22 @@ class TranssolverAttention(nn.Module):
     - F.scaled_dot_product_attention instead of slow pytorch attention
     """
 
-    def __init__(self, dim, num_heads, num_slices, dropout=0., qkv_bias=False, init_weights="truncnormal"):
+    def __init__(
+            self,
+            dim,
+            num_heads,
+            num_slices,
+            dropout=0.0,
+            qkv_bias=False,
+            init_weights="truncnormal",
+            init_last_proj_zero=False,
+    ):
         super().__init__()
         dim_head = dim // num_heads
         self.dim_head = dim_head
         self.num_heads = num_heads
         self.dropout = dropout
+        self.init_last_proj_zero = init_last_proj_zero
         self.temperature = nn.Parameter(torch.full(size=(1, num_heads, 1, 1), fill_value=0.5))
 
         self.in_project_x = LinearProjection(dim, dim, init_weights=init_weights)
@@ -32,12 +42,17 @@ class TranssolverAttention(nn.Module):
         #     # use a principled initialization
         #     torch.nn.init.orthogonal_(l.weight)
         self.qkv = LinearProjection(dim_head, dim_head * 3, bias=qkv_bias, init_weights=init_weights)
+        self.proj = LinearProjection(dim, dim, init_weights=init_weights)
+        self.proj_dropout = nn.Dropout(dropout)
+
+        # init weights
         if init_weights == "xavier_uniform":
             init_xavier_uniform_merged_linear(self.qkv.proj, num_layers=3)
-        self.to_out = nn.Sequential(
-            LinearProjection(dim, dim, init_weights="truncnormal"),
-            nn.Dropout(dropout)
-        )
+        if self.init_last_proj_zero:
+            nn.init.zeros_(self.proj.proj.weight)
+            # init_weights == "torch" has no zero bias init
+            if self.proj.proj.bias is not None:
+                nn.init.zeros_(self.proj.proj.bias)
 
     def forward(self, x, attn_mask=None):
         batch_size, seqlen, _ = x.shape
@@ -82,4 +97,6 @@ class TranssolverAttention(nn.Module):
             out_x,
             "batch_size num_heads seqlen dim_head -> batch_size seqlen (num_heads dim_head)",
         )
-        return self.to_out(out_x)
+        out_x = self.proj(out_x)
+        out_x = self.proj_dropout(out_x)
+        return out_x

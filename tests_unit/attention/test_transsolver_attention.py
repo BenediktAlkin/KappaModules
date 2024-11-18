@@ -22,12 +22,7 @@ class TestDotProductAttention(unittest.TestCase):
         x = torch.randn(2, seqlen, dim)
         y = attn(x)
         self.assertEqual(x.shape, y.shape)
-        # unmerged qkv
-        # self.assertTrue(torch.isclose(y.mean(), torch.tensor(0.002519140485674143)))
-        # merged qkv
-        # self.assertTrue(torch.isclose(y.mean(), torch.tensor(0.0014637971762567759)))
-        # merged qkv + split xavier init
-        self.assertTrue(torch.isclose(y.mean(), torch.tensor(-0.0017974275397136807)))
+        self.assertTrue(torch.isclose(y.mean(), torch.tensor(0.0016125715337693691)), y.mean().item())
 
     def test_masked(self):
         torch.manual_seed(98234)
@@ -47,8 +42,8 @@ class TestDotProductAttention(unittest.TestCase):
         y = attn(x, attn_mask=mask)
         self.assertEqual(x.shape, y.shape)
         # merged qkv + split xavier init
-        self.assertTrue(torch.isclose(y.mean(), torch.tensor(-0.0024041568394750357)))
+        self.assertTrue(torch.isclose(y.mean(), torch.tensor(0.001644398202188313)), y.mean().item())
         # rescale masked outputs to make sure they are not included in attention
         x[0, 10:] = 1000000000
         y = attn(x, attn_mask=mask)
-        self.assertTrue(torch.isclose(y.mean(), torch.tensor(-0.0024041568394750357)))
+        self.assertTrue(torch.isclose(y.mean(), torch.tensor(0.001644398202188313)), y.mean().item())
