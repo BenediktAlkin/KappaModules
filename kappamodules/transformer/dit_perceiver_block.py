@@ -24,6 +24,7 @@ class DitPerceiverBlock(nn.Module):
             eps=1e-6,
             init_weights="xavier_uniform",
             init_last_proj_zero=False,
+            init_modulation_zero=False,
             init_gate_zero=False,
     ):
         super().__init__()
@@ -36,7 +37,7 @@ class DitPerceiverBlock(nn.Module):
             out_dim=dim,
             num_outputs=8,
             gate_indices=[4, 7],
-            init_weights=init_weights,
+            init_weights="zero" if init_modulation_zero else init_weights,
             init_gate_zero=init_gate_zero,
         )
         #

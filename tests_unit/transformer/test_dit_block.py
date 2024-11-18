@@ -1,7 +1,9 @@
 import unittest
 
 from kappamodules.transformer import DitBlock
+from kappamodules.attention import TranssolverAttention
 import torch
+from functools import partial
 
 class TestDitBlock(unittest.TestCase):
     def test_shape(self):
@@ -36,3 +38,15 @@ class TestDitBlock(unittest.TestCase):
         y = block(x, cond=cond)
         self.assertEqual(x.shape, y.shape)
         self.assertTrue(torch.all(x == y))
+
+    def test_transsolver(self):
+        torch.manual_seed(9845)
+        dim = 8
+        seqlen = 5
+        block = DitBlock(dim=dim, num_heads=2, cond_dim=dim, attn_ctor=partial(TranssolverAttention, num_slices=3))
+        x = torch.randn(4, seqlen, dim)
+        cond = torch.randn(4, dim)
+        y = block(x, cond=cond)
+        self.assertEqual(x.shape, y.shape)
+        self.assertTrue(torch.isclose(torch.tensor(40.46888732910156), y.sum()), y.sum().item())
+

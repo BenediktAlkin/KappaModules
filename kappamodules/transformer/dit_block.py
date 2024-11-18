@@ -26,6 +26,7 @@ class DitBlock(nn.Module):
             init_weights="xavier_uniform",
             init_norms="nonaffine",
             init_last_proj_zero=False,
+            init_modulation_zero=False,
             init_gate_zero=False,
     ):
         super().__init__()
@@ -40,7 +41,7 @@ class DitBlock(nn.Module):
         self.modulation = Dit(
             cond_dim=cond_dim,
             out_dim=dim,
-            init_weights=init_weights,
+            init_weights="zero" if init_modulation_zero else init_weights,
             num_outputs=6,
             gate_indices=[2, 5],
             init_gate_zero=init_gate_zero,
