@@ -1,4 +1,5 @@
 import einops
+import einops
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -10,13 +11,13 @@ from kappamodules.init import (
     init_truncnormal_zero_bias,
 )
 from kappamodules.utils.param_checking import to_ntuple
-from kappamodules.functional.patchify import patchify_as_1d
 
-class PerceiverAttentionLocalgrid2d(nn.Module):
+
+class LocalgridAttention2d(nn.Module):
     def __init__(
             self,
             dim,
-            kernel_size,
+            kernel_size=3,
             num_heads=8,
             bias=True,
             init_weights="truncnormal002",
@@ -25,20 +26,25 @@ class PerceiverAttentionLocalgrid2d(nn.Module):
         super().__init__()
         assert hasattr(F, "scaled_dot_product_attention")
         assert dim % num_heads == 0, "dim should be divisible by num_heads"
-        self.kernel_size = to_ntuple(kernel_size, n=2)
-        assert all(kernel_size % 2 == 1 for kernel_size in self.kernel_size)
-        self.padding = [kernel_size // 2 for kernel_size in self.kernel_size]
+        kernel_size = to_ntuple(kernel_size, n=2)
+        padding = [ksize // 2 for ksize in kernel_size]
+        assert all(ksize % 2 == 1 for ksize in kernel_size)
+
+        self.kernel_size = kernel_size
+        self.padding = padding
         self.num_heads = num_heads
         self.head_dim = dim // num_heads
         self.init_weights = init_weights
         self.init_last_proj_zero = init_last_proj_zero
 
         self.qkv = nn.Linear(dim, dim * 3, bias=bias)
+        self.relative_position_bias = nn.Parameter(torch.zeros(1, num_heads, 1, np.prod(kernel_size)))
         self.proj = nn.Linear(dim, dim, bias=bias)
 
         self.reset_parameters()
 
     def reset_parameters(self):
+        nn.init.trunc_normal_(self.relative_position_bias)
         if self.init_weights == "torch":
             pass
         elif self.init_weights == "xavier_uniform":
@@ -66,8 +72,13 @@ class PerceiverAttentionLocalgrid2d(nn.Module):
         # pad + attention mask
         assert attn_mask is None
         qkv = F.pad(qkv, pad=(0, 0, padding_w, padding_w, padding_h, padding_h), mode="constant", value=0)
-        attn_mask = torch.ones(size=(seqlen_h, seqlen_w), device=x.device, dtype=torch.bool)
-        attn_mask = F.pad(attn_mask, pad=(padding_h, padding_h, padding_w, padding_w), mode="constant", value=0)
+        attn_mask = torch.zeros(size=(seqlen_h, seqlen_w), device=x.device)
+        attn_mask = F.pad(
+            attn_mask,
+            pad=(padding_h, padding_h, padding_w, padding_w),
+            mode="constant",
+            value=float("-inf"),
+        )
 
         # create index
         assert self.kernel_size == (3, 3)
@@ -145,6 +156,8 @@ class PerceiverAttentionLocalgrid2d(nn.Module):
             batch_size=batch_size,
             nine=9,
         )
+        # add relative positional bias
+        attn_mask = attn_mask + self.relative_position_bias
 
         x = F.scaled_dot_product_attention(q, k, v, attn_mask=attn_mask)
         x = einops.rearrange(
@@ -156,4 +169,3 @@ class PerceiverAttentionLocalgrid2d(nn.Module):
         )
         x = self.proj(x)
         return x
-

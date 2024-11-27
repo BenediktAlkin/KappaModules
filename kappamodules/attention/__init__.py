@@ -18,4 +18,4 @@ from .mmdit_dot_product_attention import MMDiTDotProductAttention
 from .mmmdit_dot_product_attention import MMMDiTDotProductAttention
 from .perceiver_attention import PerceiverAttention1d, PerceiverAttention
 from .transsolver_attention import TranssolverAttention
-from .perceiver_attention_localgrid import PerceiverAttentionLocalgrid2d
+from .localgrid_attention import LocalgridAttention2d
