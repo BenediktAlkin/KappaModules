@@ -23,8 +23,8 @@ class TestPerceiverAttentionLocalgrid(unittest.TestCase):
 
     def test_numbers(self):
         torch.manual_seed(9823)
-        seqlen_h = 4
-        seqlen_w = 5
+        seqlen_h = 3
+        seqlen_w = 4
         attn = PerceiverAttentionLocalgrid2d(
             kernel_size=3,
             dim=1,
@@ -37,8 +37,11 @@ class TestPerceiverAttentionLocalgrid(unittest.TestCase):
                 indexing="ij",
             )
         )
-        x = (x[1] + x[0] * seqlen_w).unsqueeze(0).unsqueeze(-1)
+        x = (x[1] + x[0] * seqlen_w).unsqueeze(0).unsqueeze(-1) + 1
         nn.init.ones_(attn.qkv.weight)
         nn.init.zeros_(attn.qkv.bias)
+        nn.init.ones_(attn.proj.weight)
+        nn.init.zeros_(attn.proj.bias)
         y = attn(x)
         self.assertEqual(x.shape, y.shape)
+        self.assertTrue(torch.isclose(torch.tensor(118.42804718017578), y.sum()), y.sum().item())

@@ -66,8 +66,7 @@ class PerceiverAttentionLocalgrid2d(nn.Module):
         # pad + attention mask
         assert attn_mask is None
         qkv = F.pad(qkv, pad=(0, 0, padding_w, padding_w, padding_h, padding_h), mode="constant", value=0)
-        # TODO padded tokens should be excluded from attention
-        attn_mask = torch.ones(size=(batch_size, seqlen_h, seqlen_w), device=x.device, dtype=torch.bool)
+        attn_mask = torch.ones(size=(seqlen_h, seqlen_w), device=x.device, dtype=torch.bool)
         attn_mask = F.pad(attn_mask, pad=(padding_h, padding_h, padding_w, padding_w), mode="constant", value=0)
 
         # create index
@@ -109,7 +108,6 @@ class PerceiverAttentionLocalgrid2d(nn.Module):
         q_idx = einops.rearrange(q_idx, "seqlen_h seqlen_w -> (seqlen_h seqlen_w)")
         kv_idx = kv_idx[:, 1] + kv_idx[:, 0] * (seqlen_w + padding_h + padding_w)
         kv_idx = einops.rearrange(kv_idx, "nine seqlen_h seqlen_w -> nine (seqlen_h seqlen_w)")
-        raise NotImplementedError("kv index is not correct")
 
         # split per head
         q, k, v = einops.rearrange(
@@ -131,19 +129,20 @@ class PerceiverAttentionLocalgrid2d(nn.Module):
         v = torch.gather(v, dim=2, index=kv_idx_expand)
         k = einops.rearrange(
             k,
-            "batch_size num_heads (nine seqlen) head_dim -> (batch_size seqlen) num_heads nine head_dim",
+            "batch_size num_heads (seqlen nine) head_dim -> (batch_size seqlen) num_heads nine head_dim",
             nine=9,
         )
         v = einops.rearrange(
             v,
-            "batch_size num_heads (nine seqlen) head_dim -> (batch_size seqlen) num_heads nine head_dim",
+            "batch_size num_heads (seqlen nine) head_dim -> (batch_size seqlen) num_heads nine head_dim",
             nine=9,
         )
         # gather mask
-        # TODO
-        attn_mask = einops.rearrange(
+        attn_mask = attn_mask.flatten()[kv_idx]
+        attn_mask = einops.repeat(
             attn_mask,
-            "batch_size seqlen nine -> (batch_size seqlen) nine",
+            "(seqlen nine) -> (batch_size seqlen) 1 1 nine",
+            batch_size=batch_size,
             nine=9,
         )
 
