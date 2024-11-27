@@ -19,7 +19,8 @@ class LocalgridAttention2d(nn.Module):
             dim,
             kernel_size=3,
             num_heads=8,
-            bias=True,
+            qkv_bias=True,
+            proj_bias=True,
             init_weights="truncnormal002",
             init_last_proj_zero=False,
     ):
@@ -37,9 +38,9 @@ class LocalgridAttention2d(nn.Module):
         self.init_weights = init_weights
         self.init_last_proj_zero = init_last_proj_zero
 
-        self.qkv = nn.Linear(dim, dim * 3, bias=bias)
+        self.qkv = nn.Linear(dim, dim * 3, bias=qkv_bias)
         self.relative_position_bias = nn.Parameter(torch.zeros(1, num_heads, 1, np.prod(kernel_size)))
-        self.proj = nn.Linear(dim, dim, bias=bias)
+        self.proj = nn.Linear(dim, dim, bias=proj_bias)
 
         self.reset_parameters()
 
@@ -85,8 +86,8 @@ class LocalgridAttention2d(nn.Module):
         q_idx = torch.stack(
             torch.meshgrid(
                 [
-                    torch.arange(padding_h, seqlen_h + padding_h),
-                    torch.arange(padding_w, seqlen_w + padding_w),
+                    torch.arange(padding_h, seqlen_h + padding_h, device=x.device),
+                    torch.arange(padding_w, seqlen_w + padding_w, device=x.device),
                 ],
                 indexing="ij",
             ),
