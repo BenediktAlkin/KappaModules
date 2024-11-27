@@ -29,6 +29,7 @@ class TranssolverAttention(nn.Module):
         super().__init__()
         dim_head = dim // num_heads
         self.dim_head = dim_head
+        self.num_slices = num_slices
         self.num_heads = num_heads
         self.dropout = dropout
         self.init_last_proj_zero = init_last_proj_zero
