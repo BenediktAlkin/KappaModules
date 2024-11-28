@@ -66,6 +66,11 @@ class LocalgridAttention2d(nn.Module):
         batch_size, seqlen_h, seqlen_w, _ = x.shape
         padding_h, padding_w = self.padding
         kernel_h, kernel_w = self.kernel_size
+        kernel_h_half = kernel_h // 2
+        kernel_w_half = kernel_w // 2
+        assert kernel_h % 2 == 1, "even kernel sizes not supported"
+        assert kernel_w % 2 == 1, "even kernel sizes not supported"
+        kv_seqlen = np.prod(self.kernel_size)
 
         # project to attention space
         qkv = self.qkv(x)
@@ -82,7 +87,7 @@ class LocalgridAttention2d(nn.Module):
         )
 
         # create index
-        assert self.kernel_size == (3, 3)
+        # TODO cache these tensor creations
         q_idx = torch.stack(
             torch.meshgrid(
                 [
@@ -92,34 +97,29 @@ class LocalgridAttention2d(nn.Module):
                 indexing="ij",
             ),
         )
-        kv_idx = einops.repeat(q_idx, "ndim seqlen_h seqlen_w -> nine ndim seqlen_h seqlen_w", nine=9).clone()
-        # top left
-        kv_idx[0] -= 1
-        # top center
-        kv_idx[1, 0] -= 1
-        # top right
-        kv_idx[2, 0] -= 1
-        kv_idx[2, 1] += 1
-        # center left
-        kv_idx[3, 1] -= 1
-        # center center
-        pass
-        # center right
-        kv_idx[5, 1] += 1
-        # bot left
-        kv_idx[6, 0] += 1
-        kv_idx[6, 1] -= 1
-        # bot center
-        kv_idx[7, 0] += 1
-        # bot right
-        kv_idx[8, 0] += 1
-        kv_idx[8, 1] += 1
+        kv_idx = einops.repeat(
+            q_idx,
+            "ndim seqlen_h seqlen_w -> kv_seqlen ndim seqlen_h seqlen_w",
+            kv_seqlen=kv_seqlen,
+        ).clone()
+        offset = torch.stack(
+            torch.meshgrid(
+                [
+                    torch.arange(-kernel_h_half, kernel_h_half + 1, device=x.device),
+                    torch.arange(-kernel_w_half, kernel_w_half + 1, device=x.device),
+                ],
+                indexing="ij",
+            ),
+        )
+        offset = einops.rearrange(offset, "two kernel_h_half kernel_w_half -> (kernel_h_half kernel_w_half) two 1 1")
+        kv_idx += offset
 
         # flatten indices
-        q_idx = q_idx[1] + q_idx[0] * (seqlen_w + padding_h + padding_w)
+        seqlen_w_padded = seqlen_w + 2 * padding_w
+        q_idx = q_idx[1] + q_idx[0] * seqlen_w_padded
         q_idx = einops.rearrange(q_idx, "seqlen_h seqlen_w -> (seqlen_h seqlen_w)")
-        kv_idx = kv_idx[:, 1] + kv_idx[:, 0] * (seqlen_w + padding_h + padding_w)
-        kv_idx = einops.rearrange(kv_idx, "nine seqlen_h seqlen_w -> nine (seqlen_h seqlen_w)")
+        kv_idx = kv_idx[:, 1] + kv_idx[:, 0] * seqlen_w_padded
+        kv_idx = einops.rearrange(kv_idx, "kv_seqlen seqlen_h seqlen_w -> kv_seqlen (seqlen_h seqlen_w)")
 
         # split per head
         q, k, v = einops.rearrange(
@@ -135,27 +135,27 @@ class LocalgridAttention2d(nn.Module):
         q = torch.gather(q, dim=2, index=q_idx_expand)
         q = einops.rearrange(q, "batch_size num_heads seqlen head_dim -> (batch_size seqlen) num_heads 1 head_dim")
         # gather kv
-        kv_idx = einops.rearrange(kv_idx, "nine seqlen -> (seqlen nine)")
+        kv_idx = einops.rearrange(kv_idx, "kv_seqlen seqlen -> (seqlen kv_seqlen)")
         kv_idx_expand = kv_idx[None, None, :, None].expand(batch_size, self.num_heads, -1, self.head_dim)
         k = torch.gather(k, dim=2, index=kv_idx_expand)
         v = torch.gather(v, dim=2, index=kv_idx_expand)
         k = einops.rearrange(
             k,
-            "batch_size num_heads (seqlen nine) head_dim -> (batch_size seqlen) num_heads nine head_dim",
-            nine=9,
+            "batch_size num_heads (seqlen kv_seqlen) head_dim -> (batch_size seqlen) num_heads kv_seqlen head_dim",
+            kv_seqlen=kv_seqlen,
         )
         v = einops.rearrange(
             v,
-            "batch_size num_heads (seqlen nine) head_dim -> (batch_size seqlen) num_heads nine head_dim",
-            nine=9,
+            "batch_size num_heads (seqlen kv_seqlen) head_dim -> (batch_size seqlen) num_heads kv_seqlen head_dim",
+            kv_seqlen=kv_seqlen,
         )
         # gather mask
         attn_mask = attn_mask.flatten()[kv_idx]
         attn_mask = einops.repeat(
             attn_mask,
-            "(seqlen nine) -> (batch_size seqlen) 1 1 nine",
+            "(seqlen kv_seqlen) -> (batch_size seqlen) 1 1 kv_seqlen",
             batch_size=batch_size,
-            nine=9,
+            kv_seqlen=kv_seqlen,
         )
         # add relative positional bias
         attn_mask = attn_mask + self.relative_position_bias
