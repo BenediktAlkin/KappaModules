@@ -21,6 +21,21 @@ class TestLocalgridAttention(unittest.TestCase):
         y = attn(x)
         self.assertEqual(x.shape, y.shape)
 
+    def test_shape_excludeself(self):
+        torch.manual_seed(9823)
+        dim = 24
+        seqlen_h = 6
+        seqlen_w = 7
+        attn = LocalgridAttention2d(
+            kernel_size=3,
+            dim=dim,
+            num_heads=4,
+            exclude_self=True,
+        )
+        x = torch.randn(2, seqlen_h, seqlen_w, dim)
+        y = attn(x)
+        self.assertEqual(x.shape, y.shape)
+
     def test_shape2(self):
         torch.manual_seed(9823)
         dim = 24

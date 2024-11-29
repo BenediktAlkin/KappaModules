@@ -21,6 +21,7 @@ class LocalgridAttention2d(nn.Module):
             num_heads=8,
             qkv_bias=True,
             proj_bias=True,
+            exclude_self=False,
             init_weights="truncnormal002",
             init_last_proj_zero=False,
     ):
@@ -37,9 +38,13 @@ class LocalgridAttention2d(nn.Module):
         self.head_dim = dim // num_heads
         self.init_weights = init_weights
         self.init_last_proj_zero = init_last_proj_zero
+        self.exclude_self = exclude_self
 
         self.qkv = nn.Linear(dim, dim * 3, bias=qkv_bias)
-        self.relative_position_bias = nn.Parameter(torch.zeros(1, num_heads, 1, np.prod(kernel_size)))
+        if exclude_self:
+            self.relative_position_bias = nn.Parameter(torch.zeros(1, num_heads, 1, np.prod(kernel_size) - 1))
+        else:
+            self.relative_position_bias = nn.Parameter(torch.zeros(1, num_heads, 1, np.prod(kernel_size)))
         self.proj = nn.Linear(dim, dim, bias=proj_bias)
 
         self.reset_parameters()
@@ -64,6 +69,7 @@ class LocalgridAttention2d(nn.Module):
     def forward(self, x, attn_mask=None):
         # shapes
         batch_size, seqlen_h, seqlen_w, _ = x.shape
+        seqlen = seqlen_h * seqlen_w
         padding_h, padding_w = self.padding
         kernel_h, kernel_w = self.kernel_size
         kernel_h_half = kernel_h // 2
@@ -121,6 +127,10 @@ class LocalgridAttention2d(nn.Module):
         kv_idx = kv_idx[:, 1] + kv_idx[:, 0] * seqlen_w_padded
         kv_idx = einops.rearrange(kv_idx, "kv_seqlen seqlen_h seqlen_w -> kv_seqlen (seqlen_h seqlen_w)")
 
+        if self.exclude_self:
+            mid = len(kv_idx) // 2
+            kv_idx = torch.concat([kv_idx[:mid], kv_idx[mid + 1:]])
+
         # split per head
         q, k, v = einops.rearrange(
             qkv,
@@ -142,12 +152,12 @@ class LocalgridAttention2d(nn.Module):
         k = einops.rearrange(
             k,
             "batch_size num_heads (seqlen kv_seqlen) head_dim -> (batch_size seqlen) num_heads kv_seqlen head_dim",
-            kv_seqlen=kv_seqlen,
+            seqlen=seqlen,
         )
         v = einops.rearrange(
             v,
             "batch_size num_heads (seqlen kv_seqlen) head_dim -> (batch_size seqlen) num_heads kv_seqlen head_dim",
-            kv_seqlen=kv_seqlen,
+            seqlen=seqlen,
         )
         # gather mask
         attn_mask = attn_mask.flatten()[kv_idx]
@@ -155,7 +165,7 @@ class LocalgridAttention2d(nn.Module):
             attn_mask,
             "(seqlen kv_seqlen) -> (batch_size seqlen) 1 1 kv_seqlen",
             batch_size=batch_size,
-            kv_seqlen=kv_seqlen,
+            seqlen=seqlen,
         )
         # add relative positional bias
         attn_mask = attn_mask + self.relative_position_bias
