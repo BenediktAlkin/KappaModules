@@ -11,7 +11,7 @@ from kappamodules.init import (
     init_truncnormal_zero_bias,
 )
 from kappamodules.utils.param_checking import to_ntuple
-
+from kappamodules.functional.attention import scaled_dot_product_attention
 
 class LocalgridAttention2d(nn.Module):
     def __init__(
@@ -24,6 +24,7 @@ class LocalgridAttention2d(nn.Module):
             exclude_self=False,
             init_weights="truncnormal002",
             init_last_proj_zero=False,
+            backend="math",
     ):
         super().__init__()
         assert hasattr(F, "scaled_dot_product_attention")
@@ -39,6 +40,7 @@ class LocalgridAttention2d(nn.Module):
         self.init_weights = init_weights
         self.init_last_proj_zero = init_last_proj_zero
         self.exclude_self = exclude_self
+        self.backend = backend
 
         self.qkv = nn.Linear(dim, dim * 3, bias=qkv_bias)
         if exclude_self:
@@ -170,7 +172,7 @@ class LocalgridAttention2d(nn.Module):
         # add relative positional bias
         attn_mask = attn_mask + self.relative_position_bias
 
-        x = F.scaled_dot_product_attention(q, k, v, attn_mask=attn_mask)
+        x = scaled_dot_product_attention(q, k, v, attn_mask=attn_mask, backend=self.backend)
         x = einops.rearrange(
             x,
             "(bs seqlen_h seqlen_w) num_heads 1 head_dim -> bs seqlen_h seqlen_w (num_heads head_dim)",
