@@ -1,7 +1,8 @@
 import einops
+from torch import nn
+
 from kappamodules.layers import ContinuousSincosEmbed, LinearProjection
 from kappamodules.transformer import PerceiverBlock
-from torch import nn
 
 
 class PerceiverDecoder(nn.Module):

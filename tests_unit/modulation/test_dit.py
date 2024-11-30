@@ -1,6 +1,9 @@
 import unittest
-from kappamodules.modulation import Dit
+
 import torch
+
+from kappamodules.modulation import Dit
+
 
 class TestDit(unittest.TestCase):
     def test_init_gate_zero(self):

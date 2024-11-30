@@ -1,10 +1,11 @@
 import unittest
+from functools import partial
 
 import torch
 from timm import create_model
+
 from kappamodules.convolution.convnext import ConvNextBlock, ConvNext
 from kappamodules.layers import LayerNorm2d
-from functools import partial
 
 
 class TestConvnext(unittest.TestCase):

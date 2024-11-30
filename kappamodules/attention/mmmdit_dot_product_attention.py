@@ -10,6 +10,7 @@ from kappamodules.init import (
 )
 from kappamodules.utils.param_checking import to_ntuple
 
+
 class MMMDiTDotProductAttention(nn.Module):
     def __init__(
             self,

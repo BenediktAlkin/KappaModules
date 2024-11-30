@@ -64,5 +64,5 @@ def main_multi():
 if __name__ == "__main__":
     if os.name == "nt":
         os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
-    #main_single(rank=0, world_size=1)
+    # main_single(rank=0, world_size=1)
     main_multi()

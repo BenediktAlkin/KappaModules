@@ -1,7 +1,6 @@
-import math
-
 import torch
 from torch import nn
+
 from kappamodules.init.functional import (
     init_truncnormal_zero_bias,
     init_xavier_uniform_merged_linear,

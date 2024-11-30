@@ -8,9 +8,6 @@ from kappamodules.attention import (
     DotProductAttention3d,
     DotProductAttention2d,
     DotProductAttention1d,
-    LinformerAttention1d,
-    LinformerAttention2d,
-    LinformerAttention3d,
 )
 from kappamodules.attention import EfficientAttention1d, EfficientAttention3d, EfficientAttention2d
 from kappamodules.layers import Identity, RMSNorm

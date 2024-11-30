@@ -121,6 +121,7 @@ def init_bias_to_zero(m):
         if m.bias is not None:
             nn.init.constant_(m.bias, 0.)
 
+
 def init_zero(m):
     if isinstance(m, ALL_LAYERS):
         nn.init.zeros_(m.weight)

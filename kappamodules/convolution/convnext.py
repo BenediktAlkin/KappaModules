@@ -3,10 +3,11 @@ from functools import partial
 import torch
 from torch import nn
 
-from kappamodules.init import init_truncnormal_zero_bias, init_with_scheme
+from kappamodules.init import init_with_scheme
+from kappamodules.layers import DropPath
 from kappamodules.layers import LayerNorm3d, LayerNorm2d, LayerNorm1d
 from kappamodules.mlp import Mlp
-from kappamodules.layers import DropPath
+
 
 class ConvNextBlock(nn.Module):
     def __init__(

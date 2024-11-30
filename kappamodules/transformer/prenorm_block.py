@@ -1,5 +1,3 @@
-from functools import partial
-
 from torch import nn
 
 from kappamodules.attention import DotProductAttention1d

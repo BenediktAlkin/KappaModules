@@ -1,11 +1,11 @@
 import os
 
-import einops
 import matplotlib.pyplot as plt
 import torch
-import torch.nn.functional as F
 from torch import nn
+
 from kappamodules.functional.pos_embed import interpolate_sincos
+
 
 def dino(x, w, h):
     previous_dtype = x.dtype
@@ -25,6 +25,7 @@ def dino(x, w, h):
     assert (w0, h0) == patch_pos_embed.shape[-2:]
     patch_pos_embed = patch_pos_embed.permute(0, 2, 3, 1).view(1, -1, 1)
     return patch_pos_embed.to(previous_dtype)
+
 
 def main():
     torch.manual_seed(0)

@@ -1,6 +1,9 @@
 import unittest
-from kappamodules.modulation import Film
+
 import torch
+
+from kappamodules.modulation import Film
+
 
 class TestFilm(unittest.TestCase):
     def test_channel_last(self):

@@ -1,7 +1,9 @@
 import unittest
 
-from kappamodules.transformer import PrenormBlock
 import torch
+
+from kappamodules.transformer import PrenormBlock
+
 
 class TestPrenormBlock(unittest.TestCase):
     def test_shape_mask(self):

@@ -4,6 +4,7 @@ import torch
 
 from kappamodules.functional.attention import scaled_dot_product_attention
 
+
 class TestAttention(unittest.TestCase):
     def _run_test(self, **kwargs):
         results = []

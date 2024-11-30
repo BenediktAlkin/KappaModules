@@ -1,7 +1,9 @@
 import unittest
 
-from kappamodules.transformer import DitPerceiverBlock
 import torch
+
+from kappamodules.transformer import DitPerceiverBlock
+
 
 class TestDitPerceiverBlock(unittest.TestCase):
     def test_shape(self):

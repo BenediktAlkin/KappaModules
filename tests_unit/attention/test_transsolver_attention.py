@@ -1,7 +1,5 @@
 import unittest
 
-import einops
-import numpy as np
 import torch
 
 from kappamodules.attention import TranssolverAttention

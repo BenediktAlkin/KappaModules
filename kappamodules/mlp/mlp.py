@@ -3,8 +3,9 @@ from functools import partial
 from torch import nn
 
 from kappamodules.init import init_xavier_uniform_zero_bias, init_truncnormal_zero_bias
-from kappamodules.utils.param_checking import to_2tuple
 from kappamodules.norm.global_response_norm import GlobalResponseNorm
+from kappamodules.utils.param_checking import to_2tuple
+
 
 class Mlp(nn.Module):
     def __init__(

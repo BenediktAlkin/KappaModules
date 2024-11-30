@@ -5,6 +5,7 @@ import torch
 
 from kappamodules.layers import ContinuousPosEmbed
 
+
 @torch.no_grad()
 def main():
     emb = ContinuousPosEmbed(dim=2, ndim=2, mode="learnable", max_value=(2, 2))
@@ -25,9 +26,6 @@ def main():
     ax0.imshow(data[:, :, 0])
     ax1.imshow(data[:, :, 1])
     plt.show()
-
-
-
 
 
 if __name__ == '__main__':

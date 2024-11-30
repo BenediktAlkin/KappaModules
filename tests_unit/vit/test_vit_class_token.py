@@ -74,4 +74,3 @@ class TestVitClassToken(unittest.TestCase):
         self.assertTrue(torch.all(y[:, 81] == cls1))
         self.assertTrue(torch.all(y[:, 122] == cls2))
         self.assertTrue(torch.all(y[:, 163] == cls3))
-

@@ -1,6 +1,5 @@
 import unittest
 
-import einops
 import torch
 
 from kappamodules.attention import LinformerAttention1d

@@ -12,6 +12,7 @@ class IgnoreArgsAndKwargsWrapper(nn.Module):
     )
     y = self.message(x, batch=batch)
     """
+
     def __init__(self, module):
         super().__init__()
         self.module = module

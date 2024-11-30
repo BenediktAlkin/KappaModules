@@ -1,11 +1,12 @@
 import einops
 import numpy as np
+import torch
+import torch.nn.functional as F
 from torch import nn
 
 from kappamodules.init import init_truncnormal_zero_bias
 from kappamodules.utils.param_checking import to_ntuple
-import torch.nn.functional as F
-import torch
+
 
 class VitPatchEmbed(nn.Module):
     def __init__(

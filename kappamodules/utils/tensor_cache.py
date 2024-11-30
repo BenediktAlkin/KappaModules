@@ -5,6 +5,7 @@ import torch
 _cache = {}
 _version_cache = {}
 
+
 # noinspection PyProtectedMember
 def _wrapper(key, ctor=None):
     if key in _cache:
