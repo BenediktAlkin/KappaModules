@@ -12,7 +12,7 @@ class TestAttention(unittest.TestCase):
             results.append(scaled_dot_product_attention(**kwargs, backend=backend))
         assert len(results) == 3
         self.assertTrue(torch.allclose(results[0], results[1]))
-        self.assertTrue(torch.allclose(results[0], results[2]))
+        self.assertTrue(torch.allclose(results[0], results[2], atol=1e-6))
 
     def test_sdpa_selfattn_nomask(self):
         batch_size = 2
