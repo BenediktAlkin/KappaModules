@@ -2,7 +2,7 @@ from torch import nn
 
 from kappamodules.attention import PerceiverAttention1d
 from kappamodules.init import init_norms_as_noaffine
-from kappamodules.layers import DropPath
+from kappamodules.layers import DropPath, LayerScale
 from .mlp import Mlp
 
 
@@ -18,6 +18,7 @@ class PerceiverBlock(nn.Module):
             norm_ctor=nn.LayerNorm,
             bias=True,
             concat_query_to_kv=False,
+            layerscale=None,
             eps=1e-6,
             init_weights="xavier_uniform",
             init_norms="nonaffine",
@@ -37,6 +38,7 @@ class PerceiverBlock(nn.Module):
             init_weights=init_weights,
             init_last_proj_zero=init_last_proj_zero,
         )
+        self.ls1 = nn.Identity() if layerscale is None else LayerScale(dim, init_scale=layerscale)
         self.drop_path1 = DropPath(drop_prob=drop_path)
         self.norm2 = norm_ctor(dim, eps=eps)
         self.mlp = Mlp(
@@ -47,6 +49,7 @@ class PerceiverBlock(nn.Module):
             init_weights=init_weights,
             init_last_proj_zero=init_last_proj_zero,
         )
+        self.ls2 = nn.Identity() if layerscale is None else LayerScale(dim, init_scale=layerscale)
         self.drop_path2 = DropPath(drop_prob=drop_path)
         self.reset_parameters()
 
@@ -61,10 +64,10 @@ class PerceiverBlock(nn.Module):
             raise NotImplementedError
 
     def _attn_residual_path(self, q, kv, attn_mask):
-        return self.attn(q=self.norm1q(q), kv=self.norm1kv(kv), attn_mask=attn_mask)
+        return self.ls1(self.attn(q=self.norm1q(q), kv=self.norm1kv(kv), attn_mask=attn_mask))
 
     def _mlp_residual_path(self, x):
-        return self.mlp(self.norm2(x))
+        return self.ls2(self.mlp(self.norm2(x)))
 
     def forward(self, q, kv, attn_mask=None):
         q = self.drop_path1(
